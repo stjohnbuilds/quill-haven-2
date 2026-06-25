@@ -1,0 +1,73 @@
+/* ===========================================================================
+   Quill Haven 2.0 — design foundation (the one source of truth for the look).
+   Colours reuse the established palette; the structure is fresh.
+   Themes switch by a class on <html>: (default = purple) / theme-wood /
+   theme-slate / theme-dark.  Night Light is a separate warm filter (added later).
+   =========================================================================== */
+
+/* ── Fonts (local, no network) ── */
+@font-face {
+  font-family: 'Great Vibes';
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/great-vibes-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'EB Garamond';
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url('../fonts/eb-garamond-400-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'EB Garamond';
+  font-style: normal; font-weight: 600; font-display: swap;
+  src: url('../fonts/eb-garamond-600-latin.woff2') format('woff2');
+}
+
+/* ── Default theme = Purple (the calm light look) ── */
+:root {
+  --ui-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --write-font: 'EB Garamond', Georgia, serif;
+  --logo-font: 'Great Vibes', cursive;
+
+  --bg: linear-gradient(135deg, #f6eeff 0%, #fcf3f8 45%, #f0f5ff 100%);
+  --orb1: rgba(183,103,255,0.07);
+  --orb2: rgba(210,139,181,0.08);
+  --orb3: rgba(198,212,229,0.10);
+
+  --text-strong: #595254;
+  --text-soft: #6b5f6e;
+  --text-muted: #a893b0;
+
+  --bar-bg: rgba(255,255,255,0.40);
+  --bar-border: rgba(255,255,255,0.45);
+  --panel-bg: #ffffff;
+  --card-border: rgba(147,128,159,0.12);
+  --row-hover: rgba(147,128,159,0.06);
+
+  --accent: #c9a0e0;
+  --accent-strong: #8a6f9e;
+
+  /* radii from the spec */
+  --r-card: 16px;
+  --r-icon: 14px;
+  --r-btn: 7px;
+}
+
+html.theme-wood {
+  --bg: linear-gradient(135deg, #f1f0ee 0%, #f3f2f0 45%, #efeeeb 100%);
+  --orb1: rgba(140,128,112,0.05); --orb2: rgba(150,135,118,0.05); --orb3: rgba(142,130,114,0.05);
+  --accent: #897e72; --accent-strong: #675e54;
+}
+html.theme-slate {
+  --bg: linear-gradient(135deg, #eeeef0 0%, #f2f2f4 45%, #ececee 100%);
+  --orb1: rgba(120,120,130,0.06); --orb2: rgba(130,130,140,0.07); --orb3: rgba(120,122,132,0.06);
+  --accent: #8c919b; --accent-strong: #6b7079;
+}
+html.theme-dark {
+  --bg: linear-gradient(135deg, #1e1a28 0%, #2a2535 45%, #1a1e2e 100%);
+  --orb1: rgba(120,60,200,0.08); --orb2: rgba(160,80,140,0.08); --orb3: rgba(100,120,180,0.10);
+  --text-strong: #d8cce0; --text-soft: #a898b0; --text-muted: #887898;
+  --bar-bg: rgba(30,26,40,0.65); --bar-border: rgba(255,255,255,0.08);
+  --panel-bg: rgba(30,26,40,0.97); --card-border: rgba(255,255,255,0.09);
+  --row-hover: rgba(255,255,255,0.06);
+  --accent: #c9a0e0; --accent-strong: #b083e0;
+}

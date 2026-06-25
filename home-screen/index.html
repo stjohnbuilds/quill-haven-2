@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!-- data-qh-home tells the floating-shell extension "this IS the home screen,
+     don't draw your bar here" — the home screen already has the real one. -->
+<html lang="en" data-qh-home="1">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quill Haven</title>
+  <link rel="stylesheet" href="css/theme.css?v=4">
+  <link rel="stylesheet" href="css/home.css?v=4">
+</head>
+<body>
+  <script>try{var t=localStorage.getItem('qh-theme');if(t&&t!=='purple')document.documentElement.classList.add('theme-'+t);}catch(e){}</script>
+
+  <div id="screen-filter"></div>
+
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- ── The shell: top bar (one bar, every page) ── -->
+  <header class="topbar">
+    <button class="tb-icon" id="tbWifi" title="Wi-Fi">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>
+    </button>
+    <button class="tb-icon" id="tbBattery" title="Battery">
+      <svg width="22" height="14" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="22" height="10" rx="2.5"/><rect id="battFill" x="3.5" y="4.5" width="15" height="5" rx="1" fill="currentColor" stroke="none" opacity="0.65"/><rect x="23" y="5" width="3" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.4"/></svg>
+      <svg id="battBolt" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="display:none;margin-left:-15px;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+    </button>
+    <button class="tb-icon" id="tbPower" title="Power">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+    </button>
+    <button class="tb-icon" id="tbGear" title="Settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button class="tb-icon tb-version" id="tbVersion" title="Quill Haven version"><span id="verEmoji">🌱</span></button>
+    <span class="tb-time" id="tbTime"></span>
+  </header>
+
+  <main class="stage">
+    <div class="logo-wrap">
+      <span class="logo">Quill<span class="haven">Haven</span></span>
+      <span class="logo-quill" role="img" aria-label="Quill"></span>
+    </div>
+    <div class="tagline">a quiet place to write</div>
+  </main>
+
+  <!-- Dock: filled from the one shared app list (js) -->
+  <nav class="dock" id="dock"></nav>
+
+  <!-- ── The one settings popup ── -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-card">
+      <div class="settings-head">
+        <div class="settings-title">Settings</div>
+        <button class="settings-close" id="settingsClose" title="Close">&#x2715;</button>
+      </div>
+      <div class="settings-section">Look</div>
+      <div class="settings-card-group">
+        <div class="settings-row col"><div class="settings-label">Theme</div><div class="theme-dots" id="themeDots"></div></div>
+        <div class="settings-row col"><div class="settings-label">Brightness</div><input type="range" min="35" max="100" value="100" id="brightness"></div>
+        <div class="settings-row"><div class="settings-label">Night Light</div><label class="switch"><input type="checkbox" id="nightLight"><span class="slider"></span></label></div>
+      </div>
+      <div class="settings-section">Connection</div>
+      <div class="settings-card-group">
+        <button class="settings-row click" data-act="wifi"><div class="settings-label">Wi-Fi</div><div class="settings-sub" id="wifiSub">Connected</div></button>
+        <div class="settings-row"><div class="settings-label">Region</div><select id="region"><option value="">Auto (device)</option><option value="Europe/London">London</option><option value="America/New_York">New York</option><option value="America/Los_Angeles">Los Angeles</option><option value="Australia/Sydney">Sydney</option></select></div>
+      </div>
+      <div class="settings-section">Power</div>
+      <div class="settings-card-group">
+        <button class="settings-row click" data-act="sleep"><div class="settings-label">Sleep</div></button>
+        <button class="settings-row click" data-act="restart"><div class="settings-label">Restart</div></button>
+        <button class="settings-row click danger" data-act="poweroff"><div class="settings-label">Power off</div></button>
+      </div>
+      <div class="settings-foot">Quill Haven 2.0</div>
+    </div>
+  </div>
+
+  <!-- ── Add-a-website popup ── -->
+  <div class="settings-overlay" id="addOverlay">
+    <div class="settings-card">
+      <div class="settings-head">
+        <div class="settings-title">Add a website</div>
+        <button class="settings-close" id="addClose" title="Close">&#x2715;</button>
+      </div>
+      <div class="add-body">
+        <input class="add-input" id="addName" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">
+        <input class="add-input" id="addUrl" placeholder="Website (e.g. notion.so)" autocomplete="off">
+        <div class="add-mini">Colour</div>
+        <div class="color-swatches" id="colorSwatches"></div>
+        <div class="add-actions">
+          <button class="btn-cancel" id="addCancel">Cancel</button>
+          <button class="btn-save" id="addSave">Add</button>
+        </div>
+        <div class="add-mini" id="manageLabel" style="display:none;">Your sites</div>
+        <div class="manage-list" id="manageList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Update / version popup (opens from the emoji in the top bar) ── -->
+  <div class="settings-overlay" id="updateOverlay">
+    <div class="settings-card">
+      <div class="settings-head">
+        <div class="settings-title">Quill Haven</div>
+        <button class="settings-close" id="updateClose" title="Close">&#x2715;</button>
+      </div>
+      <div class="update-body">
+        <div class="update-emoji" id="updateEmoji">🌱</div>
+        <div class="update-version" id="updateVersion">Version 2.0.0</div>
+        <div class="update-status" id="updateStatus">You're up to date.</div>
+        <div class="update-notes" id="updateNotes"></div>
+        <button class="btn-save update-btn" id="updateNow" style="display:none;">Update now</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data/apps.js?v=4"></script>
+  <script src="js/home.js?v=4"></script>
+</body>
+</html>

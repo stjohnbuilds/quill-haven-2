@@ -1,0 +1,251 @@
+/* ===========================================================================
+   Quill Haven 2.0 — home screen layout.
+   The calm backdrop + the Quill Haven logo (centre, where a clock would be) +
+   the dock of apps. Fresh, minimal; theme colours come from theme.css.
+   =========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: var(--ui-font);
+  color: var(--text-strong);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ── Floating background orbs (soft, slow) ── */
+.orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+.orb-1 { width: 420px; height: 420px; background: var(--orb1); top: -120px; right: -60px; animation: drift1 20s ease-in-out infinite; }
+.orb-2 { width: 360px; height: 360px; background: var(--orb2); bottom: -100px; left: -80px; animation: drift2 25s ease-in-out infinite; }
+.orb-3 { width: 280px; height: 280px; background: var(--orb3); top: 35%; left: 55%; animation: drift3 22s ease-in-out infinite; }
+@keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,35px); } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-45px); } }
+@keyframes drift3 { 0%,100% { transform: translate(-50%,-50%); } 50% { transform: translate(calc(-50% + 25px),calc(-50% - 20px)); } }
+
+/* ── Centre stage: the Quill Haven logo (replaces the old clock) ── */
+.stage {
+  position: relative; z-index: 1;
+  height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+}
+.logo-wrap { position: relative; display: inline-flex; align-items: baseline; }
+.logo {
+  font-family: var(--logo-font);
+  font-size: 92px; line-height: 1; letter-spacing: 2px;
+  color: var(--text-soft);
+  opacity: 0; animation: rise 1s ease forwards 0.2s;
+}
+.logo .haven { margin-left: 6px; }
+.logo-quill {
+  position: absolute; right: -86px; bottom: 4px;
+  width: 92px; height: 92px;
+  background: var(--text-soft);
+  -webkit-mask: url('../img/quill.png') center / contain no-repeat;
+          mask: url('../img/quill.png') center / contain no-repeat;
+  opacity: 0; animation: rise 0.9s ease forwards 0.9s;
+}
+.tagline {
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-muted); margin-top: 14px;
+  opacity: 0; animation: rise 0.6s ease forwards 1.6s;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Dock (apps) ── */
+.dock {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 2;
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 16px;
+  background: var(--bar-bg); border: 1px solid var(--bar-border);
+  border-radius: 22px;
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  opacity: 0; animation: riseDock 0.6s ease forwards 1.9s;
+}
+/* The dock is centred with translateX(-50%); keep that inside its keyframes so the
+   fade-in doesn't overwrite the transform and shove it off-centre. */
+@keyframes riseDock {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.app {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; border: none; background: none; font-family: inherit;
+  transition: transform 0.15s ease;
+}
+.app:hover { transform: translateY(-3px); }
+.app-icon {
+  width: 56px; height: 56px; border-radius: var(--r-icon);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+}
+.app-name { font-size: 11px; color: var(--text-soft); }
+
+/* app icon gradients (pastel, per the spec) */
+.i-docs   { background: linear-gradient(145deg, #f7cfe6, #eeb1cf); }
+.i-dabble { background: linear-gradient(145deg, #d9c2f5, #b083e0); }
+.i-add    { background: linear-gradient(145deg, #dfeede, #bcd9bc); }
+
+/* ── Screen filters (brightness dim + night light) ── */
+#screen-filter {
+  position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: #000; opacity: 0; transition: opacity 0.2s ease, background 0.3s ease;
+}
+body.night #screen-filter { background: #ff8a3d; }
+
+/* ── Top bar (the shell) ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+  height: 34px; display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+  padding: 0 14px; font-size: 12px; color: var(--text-soft);
+  background: var(--bar-bg); border-bottom: 1px solid var(--bar-border);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  opacity: 0; animation: rise 0.6s ease forwards 1.4s;
+}
+.tb-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  padding: 4px 6px; border-radius: 7px; transition: background 0.15s, color 0.15s;
+}
+.tb-icon:hover { background: var(--row-hover); color: var(--text-soft); }
+.tb-time { margin-left: 6px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+
+/* ── Version emoji (Marie's "which version am I on") — also the update flag ── */
+.tb-version { font-size: 14px; line-height: 1; padding: 3px 6px; }
+.tb-version #verEmoji { display: inline-block; }
+.tb-version.has-update { position: relative; }
+.tb-version.has-update #verEmoji { animation: verPulse 1.6s ease-in-out infinite; }
+.tb-version.has-update::after {
+  content: ''; position: absolute; top: 1px; right: 2px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #e0795a; box-shadow: 0 0 0 2px var(--bar-bg);
+}
+@keyframes verPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+
+/* ── Update popup body (reuses the settings popup frame) ── */
+.update-body { padding: 6px 22px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.update-emoji { font-size: 46px; line-height: 1; margin: 8px 0 12px; }
+.update-version { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.update-status { font-size: 13.5px; color: var(--text-soft); margin-top: 8px; }
+.update-notes { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.55; }
+.update-btn { margin-top: 20px; align-self: stretch; }
+
+/* ── Settings popup (the ONE settings) ── */
+.settings-overlay {
+  position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0,0,0,0.22); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.settings-overlay.open { display: flex; animation: fade 0.15s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.settings-card {
+  width: 100%; max-width: 380px; max-height: calc(100vh - 56px);
+  display: flex; flex-direction: column;
+  background: var(--panel-bg); border: 1px solid var(--card-border);
+  border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+  overflow: hidden; animation: pop 0.16s ease;
+}
+@keyframes pop { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.settings-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 8px;
+}
+.settings-title { font-size: 17px; font-weight: 600; color: var(--text-strong); }
+.settings-close {
+  background: none; border: none; cursor: pointer; color: var(--text-muted);
+  font-size: 15px; padding: 4px 8px; border-radius: 7px;
+}
+.settings-close:hover { background: var(--row-hover); }
+.settings-section {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); padding: 10px 18px 6px;
+}
+.settings-card-group { margin: 0 14px; }
+.settings-body, .settings-card { overflow-y: auto; }
+.settings-row {
+  width: 100%; text-align: left; background: none; border: none; font-family: inherit;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 11px 6px; border-bottom: 1px solid var(--row-hover); cursor: default;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row.click { cursor: pointer; border-radius: 8px; }
+.settings-row.click:hover { background: var(--row-hover); }
+.settings-row.col { flex-direction: column; align-items: stretch; gap: 9px; }
+.settings-label { font-size: 13.5px; color: var(--text-strong); }
+.settings-row.danger .settings-label { color: #e06a6a; }
+.settings-sub { font-size: 12px; color: var(--text-muted); }
+.settings-foot {
+  text-align: center; font-size: 11px; color: var(--text-muted);
+  padding: 14px 0 16px; margin-top: 6px;
+}
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+select {
+  font-family: inherit; font-size: 12.5px; color: var(--text-strong);
+  background: var(--row-hover); border: 1px solid var(--card-border);
+  border-radius: 7px; padding: 5px 8px;
+}
+
+/* theme dots */
+.theme-dots { display: flex; gap: 12px; }
+.theme-dot {
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; padding: 0; background: none;
+}
+.theme-dot span { display: block; width: 100%; height: 100%; border-radius: 50%; }
+.theme-dot.active { border-color: var(--accent-strong); }
+.td-purple span { background: linear-gradient(135deg,#d9c2f5,#b083e0); }
+.td-wood span   { background: linear-gradient(135deg,#d8b88c,#a9743c); }
+.td-slate span  { background: linear-gradient(135deg,#c2c8d0,#7c8694); }
+.td-dark span   { background: linear-gradient(135deg,#3a3448,#1e1a28); }
+
+/* toggle switch */
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+.switch input { display: none; }
+.slider { position: absolute; inset: 0; background: #d5cdd8; border-radius: 22px; transition: 0.2s; }
+.slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.switch input:checked + .slider { background: var(--accent); }
+.switch input:checked + .slider::before { transform: translateX(18px); }
+
+/* ── Dynamic dock icons (user apps use a letter on a pastel gradient) ── */
+.app-letter { color: #fff; font-weight: 600; font-size: 24px; line-height: 1; }
+.app-remove {
+  position: absolute; top: -4px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(0,0,0,0.45); color: #fff; font-size: 12px; line-height: 1;
+  display: none; align-items: center; justify-content: center;
+}
+.app { position: relative; }
+.app.removable:hover .app-remove { display: flex; }
+
+/* ── Add-a-website popup ── */
+.add-body { padding: 4px 18px 18px; display: flex; flex-direction: column; }
+.add-input {
+  font-family: inherit; font-size: 14px; color: var(--text-strong);
+  background: var(--row-hover); border: 1px solid var(--card-border);
+  border-radius: 9px; padding: 10px 12px; margin-bottom: 10px; outline: none;
+}
+.add-input:focus { border-color: var(--accent); }
+.add-mini { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 6px 0 8px; }
+.color-swatches { display: flex; gap: 10px; }
+.swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
+.swatch span { display: block; width: 100%; height: 100%; border-radius: 7px; }
+.swatch.active { border-color: var(--accent-strong); }
+.add-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.btn-cancel, .btn-save { border: none; border-radius: 8px; padding: 9px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancel { background: var(--row-hover); color: var(--text-strong); }
+.btn-save { background: var(--accent); color: #fff; }
+.btn-cancel:hover, .btn-save:hover { opacity: 0.88; }
+.btn-save:disabled { opacity: 0.45; cursor: default; }
+
+/* manage list (remove your sites) */
+.manage-list { display: flex; flex-direction: column; }
+.manage-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--row-hover); }
+.manage-row:last-child { border-bottom: none; }
+.manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; }
+.manage-name { flex: 1; font-size: 13px; color: var(--text-strong); }
+.manage-x { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 4px 8px; border-radius: 7px; }
+.manage-x:hover { background: var(--row-hover); color: #e06a6a; }
