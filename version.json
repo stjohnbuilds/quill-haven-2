@@ -1,6 +1,6 @@
 {
-  "version": "2.2.0",
-  "emoji": "🪶",
+  "version": "2.2.1",
+  "emoji": "🔋",
   "date": "2026-06-26",
-  "notes": "Two laptop fixes: the top bar now stays where you drag it after a reload, and the false ‘couldn’t reach the updater’ message no longer pops up when an update actually worked."
+  "notes": "Battery saver: the screen now switches itself off after a few quiet minutes (no typing or touching) and wakes the instant you touch it. First real power-saving step."
 }

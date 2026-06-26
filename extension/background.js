@@ -21,7 +21,7 @@ var HELPER = 'http://127.0.0.1:8137';
 /* ── 1. Relay helper actions ── */
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'helper' || typeof msg.path !== 'string') return;
-  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update'];
+  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update', '/screen-off'];
   if (ALLOWED.indexOf(msg.path) < 0) { sendResponse({ ok: false, reason: 'not-allowed' }); return; }
   fetch(HELPER + msg.path, { method: 'POST' })
     .then(function () { sendResponse({ ok: true }); })

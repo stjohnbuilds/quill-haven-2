@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.2.0', emoji: '🪶' };
+  var LOCAL = { version: '2.2.1', emoji: '🔋' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -513,6 +513,25 @@
     grip.addEventListener('pointercancel', end);
   }
 
+  // ── Screen-off when idle (battery) — blank the display after a few quiet ──
+  // minutes of no typing/touching; any key or touch wakes it instantly. The
+  // helper does the real power-down (xset dpms). Throttled so a moving mouse
+  // doesn't reset the timer hundreds of times a second.
+  var IDLE_MS = 4 * 60 * 1000, _idleTimer = null, _lastPoke = 0;
+  function pokeIdle() {
+    var now = Date.now();
+    if (now - _lastPoke < 4000) return;
+    _lastPoke = now;
+    if (_idleTimer) clearTimeout(_idleTimer);
+    _idleTimer = setTimeout(function () { helper('/screen-off'); }, IDLE_MS);
+  }
+  function initIdle() {
+    ['keydown', 'mousemove', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
+      window.addEventListener(ev, pokeIdle, { passive: true });
+    });
+    pokeIdle();
+  }
+
   function start() {
     document.documentElement.appendChild(host);
     wire();
@@ -529,6 +548,7 @@
       initBattery(); syncWifi();
       window.addEventListener('online', syncWifi); window.addEventListener('offline', syncWifi);
       checkUpdate(); setInterval(checkUpdate, 30 * 60 * 1000);
+      initIdle();
       watchStorage();
     });
   }
