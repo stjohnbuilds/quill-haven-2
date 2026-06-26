@@ -1,6 +1,6 @@
 {
-  "version": "2.1.6",
-  "emoji": "🖋️",
+  "version": "2.1.7",
+  "emoji": "🎐",
   "date": "2026-06-26",
-  "notes": "Settings now lists all your apps with an on/off switch — hide one from the dock without deleting it, or Remove the ones you added. (You can't hide your last app, so the dock is never empty.)"
+  "notes": "Better Add-a-website form: pick from 12 colours and 7 icons using two neat little dropdowns, and your chosen icon now shows on the app — in the dock and the apps list."
 }

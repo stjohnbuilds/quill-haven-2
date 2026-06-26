@@ -66,7 +66,7 @@
 @keyframes qh-pop { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .qh-app { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px; border: none; background: none; cursor: pointer; font-family: inherit; border-radius: 10px; text-align: left; }
 .qh-app:hover { background: var(--row-hover); }
-.qh-app-icon { width: 38px; height: 38px; border-radius: var(--r-icon); flex: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.10); }
+.qh-app-icon { width: 38px; height: 38px; border-radius: var(--r-icon); flex: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.10); color: #fff; }
 .qh-app-letter { color: #fff; font-weight: 600; font-size: 17px; line-height: 1; }
 .qh-app-name { font-size: 13.5px; color: var(--text-strong); }
 .qh-dock-sep { height: 1px; background: var(--row-hover); margin: 6px 4px; }
@@ -125,10 +125,21 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-input { font-family: inherit; font-size: 14px; color: var(--text-strong); background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 9px; padding: 10px 12px; margin-bottom: 10px; outline: none; }
 .qh-input:focus { border-color: var(--accent); }
 .qh-mini { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 6px 0 8px; }
-.qh-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
 .qh-swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
 .qh-swatch span { display: block; width: 100%; height: 100%; border-radius: 7px; }
 .qh-swatch.active { border-color: var(--accent-strong); }
+.qh-pickers { display: flex; gap: 10px; }
+.qh-pick { position: relative; flex: 1; }
+.qh-pick-btn { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 9px; padding: 7px 10px; font-family: inherit; font-size: 12.5px; color: var(--text-soft); cursor: pointer; }
+.qh-pick-face { width: 22px; height: 22px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; background: var(--row-hover); }
+.qh-icon-face { color: var(--text-strong); }
+.qh-pick-cap { flex: 1; text-align: left; }
+.qh-pick-chev { color: var(--text-muted); font-size: 10px; }
+.qh-pick-menu { display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 6; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.2); padding: 11px; }
+.qh-pick.open .qh-pick-menu { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.qh-icon-choice { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; border: 2px solid transparent; background: var(--row-hover); color: var(--text-strong); cursor: pointer; padding: 0; }
+.qh-icon-choice.active { border-color: var(--accent-strong); }
+.qh-ic-letter { font-weight: 600; font-size: 15px; color: var(--text-soft); }
 .qh-add-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 .qh-btn-save { border: none; border-radius: 8px; padding: 9px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .qh-btn-save { background: var(--accent); color: #fff; }
@@ -136,7 +147,7 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-manage-list { display: flex; flex-direction: column; }
 .qh-manage-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--row-hover); }
 .qh-manage-row:last-child { border-bottom: none; }
-.qh-manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; }
+.qh-manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
 .qh-manage-name { flex: 1; font-size: 13px; color: var(--text-strong); }
 .qh-manage-x { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 4px 8px; border-radius: 7px; }
 .qh-manage-x:hover { background: var(--row-hover); color: #e06a6a; }

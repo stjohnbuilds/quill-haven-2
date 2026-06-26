@@ -24,10 +24,20 @@
   var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var REGIONS = [['', 'Auto (device)'], ['Europe/London', 'London'], ['America/New_York', 'New York'], ['America/Los_Angeles', 'Los Angeles'], ['Australia/Sydney', 'Sydney']];
-  var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
+  var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9'], ['#f7c6c6', '#ec9b9b'], ['#f6e6b8', '#e7cf86'], ['#c9efd6', '#9bdcb0'], ['#bfe3f5', '#8ec9ea'], ['#cfc4f0', '#a98fe0'], ['#dadae4', '#b3b3c2']];
+  // Trusted line-icons offered in the Add form's icon picker (rendered white on the app tile).
+  var ICONS = [
+    { id: 'book', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' },
+    { id: 'pencil', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' },
+    { id: 'feather', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 3.8a5 5 0 0 0-7 0L4 13v7h7l9.2-9.2a5 5 0 0 0 0-7z"/><path d="M16 8 4 20"/><path d="M17.5 11.5H9"/></svg>' },
+    { id: 'star', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.8 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>' },
+    { id: 'heart', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.1a5 5 0 0 0-7.1 0L12 6.8l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>' },
+    { id: 'leaf', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13C4 8 8 4 13 3c1 6-1 11-2 17z"/><path d="M11 20c0-5 3-9 8-10"/></svg>' },
+    { id: 'note', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>' }
+  ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.6', emoji: '🖋️' };
+  var LOCAL = { version: '2.1.7', emoji: '🎐' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -52,7 +62,8 @@
   var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], hidden: [], homeUrl: '', barPos: null };
   var pendingUpdate = null;
   var _updTimer = null, _updFallback = null;
-  var pickedColor = SWATCHES[3];
+  var pickedColor = SWATCHES[1];
+  var pickedIcon = null;
   var isHome = document.documentElement.hasAttribute('data-qh-home');
 
   function loadState(cb) {
@@ -140,7 +151,10 @@
         '<div class="qh-add-inline">' +
           '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
           '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
-          '<div class="qh-mini">Colour</div><div class="qh-swatches"></div>' +
+          '<div class="qh-pickers">' +
+            '<div class="qh-pick" data-pick="colour"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
+            '<div class="qh-pick" data-pick="icon"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
+          '</div>' +
           '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
         '</div>' +
         '<div class="qh-mini qh-manage-label">Your apps</div><div class="qh-manage-list"></div>' +
@@ -203,7 +217,7 @@
     var panel = $('.qh-dock-panel'); if (!panel) return;
     var html = '<button class="qh-app" data-home="1"><span class="qh-app-icon qh-home-icon">' + I.home + '</span><span class="qh-app-name">Home</span></button><div class="qh-dock-sep"></div>';
     visibleApps().forEach(function (a) {
-      var inner = (a.builtin && a.icon) ? a.icon : '<span class="qh-app-letter">' + esc((a.name[0] || '?').toUpperCase()) + '</span>';
+      var inner = a.icon ? a.icon : '<span class="qh-app-letter">' + esc((a.name[0] || '?').toUpperCase()) + '</span>';
       html += '<button class="qh-app" data-url="' + esc(a.url) + '"><span class="qh-app-icon" style="background:' + gradOf(a) + '">' + inner + '</span><span class="qh-app-name">' + esc(a.name) + '</span></button>';
     });
     panel.innerHTML = html;
@@ -220,14 +234,33 @@
   // ── Settings app management ──
   function buildSwatches() {
     var wrap = $('.qh-swatches'); if (!wrap) return; wrap.innerHTML = '';
-    SWATCHES.forEach(function (c, i) {
+    SWATCHES.forEach(function (c) {
       var b = document.createElement('button');
+      b.type = 'button';
       b.className = 'qh-swatch' + (pickedColor[0] === c[0] && pickedColor[1] === c[1] ? ' active' : '');
       b.innerHTML = '<span style="background:linear-gradient(145deg,' + c[0] + ',' + c[1] + ')"></span>';
-      b.addEventListener('click', function () { pickedColor = c; [].forEach.call($$('.qh-swatch'), function (s) { s.classList.remove('active'); }); b.classList.add('active'); });
+      b.addEventListener('click', function () { pickedColor = c; [].forEach.call($$('.qh-swatch'), function (s) { s.classList.remove('active'); }); b.classList.add('active'); updatePickFaces(); closePicks(); });
       wrap.appendChild(b);
     });
   }
+  function buildIcons() {
+    var wrap = $('.qh-icons'); if (!wrap) return; wrap.innerHTML = '';
+    function choice(label, ico, active) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = label;
+      b.className = 'qh-icon-choice' + (active ? ' active' : '');
+      b.innerHTML = ico || '<span class="qh-ic-letter">A</span>';
+      b.addEventListener('click', function () { pickedIcon = ico || null; [].forEach.call($$('.qh-icon-choice'), function (s) { s.classList.remove('active'); }); b.classList.add('active'); updatePickFaces(); closePicks(); });
+      wrap.appendChild(b);
+    }
+    choice('Letter', null, !pickedIcon);
+    ICONS.forEach(function (ic) { choice(ic.id, ic.svg, pickedIcon === ic.svg); });
+  }
+  function updatePickFaces() {
+    var cf = $('.qh-colour-face'); if (cf) cf.style.background = 'linear-gradient(145deg,' + pickedColor[0] + ',' + pickedColor[1] + ')';
+    var icf = $('.qh-icon-face'); if (icf) icf.innerHTML = pickedIcon || '<span class="qh-ic-letter">A</span>';
+  }
+  function closePicks() { [].forEach.call($$('.qh-pick'), function (p) { p.classList.remove('open'); }); }
   // Lists EVERY app (built-in + your added sites). A toggle shows/hides it in the dock;
   // Remove only appears on your own added sites (built-ins can be hidden, never removed).
   function renderManage() {
@@ -235,7 +268,7 @@
     list.innerHTML = allApps().map(function (a) {
       var on = !isHidden(a.id);
       return '<div class="qh-manage-row">' +
-        '<span class="qh-manage-dot" style="background:' + gradOf(a) + '"></span>' +
+        '<span class="qh-manage-dot" style="background:' + gradOf(a) + '">' + (a.icon || '') + '</span>' +
         '<span class="qh-manage-name">' + esc(a.name) + '</span>' +
         '<label class="qh-switch qh-mini-switch" title="Show in dock"><input type="checkbox" data-tog="' + esc(a.id) + '"' + (on ? ' checked' : '') + '><span class="qh-slider"></span></label>' +
         (a.builtin ? '' : '<button class="qh-manage-x" data-mx="' + esc(a.id) + '">Remove</button>') +
@@ -248,9 +281,13 @@
     var name = $('.qh-add-name').value.trim(); var url = normalizeUrl($('.qh-add-url').value);
     if (!name) { $('.qh-add-name').focus(); return; }
     if (!url) { $('.qh-add-url').focus(); return; }
-    state.user = state.user.concat([{ id: 'u' + Date.now().toString(36), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] }]);
+    var app = { id: 'u' + Date.now().toString(36), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
+    // app.icon is ALWAYS a string from the trusted ICONS list (never user text) — it is injected as raw SVG.
+    if (pickedIcon) app.icon = pickedIcon;
+    state.user = state.user.concat([app]);
     save({ 'qh-user-apps': state.user }); publishApps(); renderApps(); renderManage();
     $('.qh-add-name').value = ''; $('.qh-add-url').value = '';
+    pickedIcon = null; updatePickFaces();
   }
 
   // ── Settings popup ──
@@ -328,7 +365,7 @@
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
-    if (name === 'settings') { buildThemeDots(); buildSwatches(); renderManage(); syncControls(); }
+    if (name === 'settings') { buildThemeDots(); buildSwatches(); buildIcons(); updatePickFaces(); renderManage(); syncControls(); }
     if (name === 'update') fillUpdate();
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
@@ -403,6 +440,11 @@
     $('.qh-add-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-update-now').addEventListener('click', applyUpdate);
+
+    [].forEach.call($$('.qh-pick-btn'), function (btn) {
+      btn.addEventListener('click', function (e) { e.stopPropagation(); var pick = btn.parentNode, wasOpen = pick.classList.contains('open'); closePicks(); if (!wasOpen) pick.classList.add('open'); });
+    });
+    document.addEventListener('click', function (e) { var inPick = e.composedPath && e.composedPath().some(function (n) { return n.classList && n.classList.contains('qh-pick'); }); if (!inPick) closePicks(); }, true);
 
     document.addEventListener('click', function (e) { if (e.composedPath && e.composedPath().indexOf($('.qh-dock-panel')) < 0 && e.composedPath().indexOf($('.qh-dock-btn')) < 0) closePanel(); }, true);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); }, true);
