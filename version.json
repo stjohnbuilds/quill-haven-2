@@ -1,6 +1,6 @@
 {
-  "version": "2.2.2",
-  "emoji": "🕯️",
+  "version": "2.2.3",
+  "emoji": "💤",
   "date": "2026-06-26",
-  "notes": "Three fixes: the false ‘couldn’t reach the updater’ message is gone for good, the restart icon now has a clean gap, and the screen-off battery saver now uses the real keyboard/mouse so it can never blank while you’re typing."
+  "notes": "Adds a ‘Screen’ button to the Power buttons so you can turn the screen off on demand (tap any key to wake). It’s also a quick test of the battery screen-off — if this button blanks the screen, the auto version works too."
 }
