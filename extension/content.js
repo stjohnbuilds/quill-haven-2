@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.0', emoji: '🌜' };
+  var LOCAL = { version: '2.3.1', emoji: '🔭' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -194,6 +194,7 @@
         '<div class="qh-update-version">Version ' + esc(LOCAL.version) + '</div>' +
         '<div class="qh-update-status">You’re up to date.</div>' +
         '<button class="qh-btn-save qh-update-now" style="display:none;">Update now</button>' +
+        '<button class="qh-update-check">Check for updates</button>' +
         '<div class="qh-update-progress" style="display:none;">' +
           '<div class="qh-update-bar"><div class="qh-update-bar-fill"></div></div>' +
           '<div class="qh-update-wait"></div>' +
@@ -322,10 +323,22 @@
 
   // ── Version + updates ──
   function markUpdate(on) { var b = $('.qh-version'); if (b) b.classList.toggle('has-update', on); }
-  function checkUpdate() {
+  function checkUpdate(cb) {
     fetch(REMOTE_VERSION_URL, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (j && j.version && String(j.version) !== LOCAL.version) { pendingUpdate = j; markUpdate(true); } else { pendingUpdate = null; markUpdate(false); }
-    }).catch(function () {});
+      if (cb) cb(true);
+    }).catch(function () { if (cb) cb(false); });
+  }
+  // The "Check for updates" button: look right now, then show the result in the popup.
+  function checkNow() {
+    var st = $('.qh-update-status'), btn = $('.qh-update-check');
+    if (st) st.textContent = 'Checking…';
+    if (btn) btn.disabled = true;
+    checkUpdate(function (ok) {
+      if (btn) btn.disabled = false;
+      if (!ok) { if (st) st.textContent = 'Couldn’t check just now — try again in a moment.'; return; }
+      fillUpdate();
+    });
   }
   function resetUpdateUI() {
     if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
@@ -459,6 +472,7 @@
     $('.qh-add-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-update-now').addEventListener('click', applyUpdate);
+    $('.qh-update-check').addEventListener('click', checkNow);
 
     [].forEach.call($$('.qh-pick-btn'), function (btn) {
       btn.addEventListener('click', function (e) { e.stopPropagation(); var pick = btn.parentNode, wasOpen = pick.classList.contains('open'); closePicks(); if (!wasOpen) pick.classList.add('open'); });

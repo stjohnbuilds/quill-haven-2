@@ -1,6 +1,6 @@
 {
-  "version": "2.3.0",
-  "emoji": "🌜",
+  "version": "2.3.1",
+  "emoji": "🔭",
   "date": "2026-06-26",
-  "notes": "Screen sleep you control: a new slider in Settings (Off / 30 sec / 1 min / 2 min / 5 min) sets when the screen turns itself off to save battery. The turn-off now uses a more reliable method so it actually works. Sliders are slimmer and tidier too."
+  "notes": "Adds a ‘Check for updates’ button to the version popup, so you can look for a new version yourself instead of waiting for it to appear."
 }
