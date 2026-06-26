@@ -36,14 +36,8 @@ html, body {
 }
 html.qh-hue-on body { filter: hue-rotate(var(--qh-hue)); }
 
-/* Soft blurred blobs for a calm backdrop. They are STATIC on purpose: animating a
-   large 80px blur every frame re-rasterises the whole blur 60×/sec — three at once
-   pegged the CPU/GPU and ran the fans non-stop on a light laptop. Drawn once, they
-   cost almost nothing and look the same. */
-.orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
-.orb-1 { width: 420px; height: 420px; background: var(--orb1); top: -120px; right: -60px; }
-.orb-2 { width: 360px; height: 360px; background: var(--orb2); bottom: -100px; left: -80px; }
-.orb-3 { width: 280px; height: 280px; background: var(--orb3); top: 35%; left: 55%; transform: translate(-50%, -50%); }
+/* (Removed the three blurred background blobs — animating an 80px blur 60×/sec
+   pegged the CPU/GPU and ran the fans non-stop on a light laptop. Plain backdrop now.) */
 
 .stage {
   position: relative; z-index: 1; height: 100%;
