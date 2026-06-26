@@ -118,6 +118,7 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .qh-switch input:checked + .qh-slider { background: var(--accent); }
 .qh-switch input:checked + .qh-slider::before { transform: translateX(18px); }
+.qh-mini-switch { flex: none; transform: scale(0.82); }
 
 /* ── Settings app management ── */
 .qh-add-inline { padding: 2px 0 13px; display: flex; flex-direction: column; border-bottom: 1px solid var(--row-hover); }

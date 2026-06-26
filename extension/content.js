@@ -27,7 +27,7 @@
   var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.5', emoji: '📚' };
+  var LOCAL = { version: '2.1.6', emoji: '🖋️' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -49,7 +49,7 @@
   var BUILTINS = (window.QH_BUILTINS || []).map(function (a) { return { id: a.id, name: a.name, url: a.url, c1: a.c1, c2: a.c2, icon: a.icon, builtin: true }; });
 
   // ── State (the ONE store: chrome.storage) ──
-  var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], homeUrl: '', barPos: null };
+  var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], hidden: [], homeUrl: '', barPos: null };
   var pendingUpdate = null;
   var _updTimer = null, _updFallback = null;
   var pickedColor = SWATCHES[3];
@@ -57,7 +57,7 @@
 
   function loadState(cb) {
     try {
-      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-night', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-home-url', 'qh-bar-pos'], function (v) {
+      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-night', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-hidden-apps', 'qh-home-url', 'qh-bar-pos'], function (v) {
         if (!chrome.runtime.lastError) {
           v = v || {};
           if (THEMES.indexOf(v['qh-theme']) >= 0) state.theme = v['qh-theme'];
@@ -66,6 +66,7 @@
           state.hue = parseHue(v['qh-hue']);
           state.tz = v['qh-tz'] || '';
           if (Array.isArray(v['qh-user-apps'])) state.user = v['qh-user-apps'];
+          if (Array.isArray(v['qh-hidden-apps'])) state.hidden = v['qh-hidden-apps'];
           state.homeUrl = v['qh-home-url'] || '';
           if (v['qh-bar-pos'] && typeof v['qh-bar-pos'] === 'object') state.barPos = v['qh-bar-pos'];
         }
@@ -77,6 +78,19 @@
   function helper(path, cb) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function (res) { void chrome.runtime.lastError; if (cb) cb(res); }); } catch (e) { if (cb) cb(null); } }
 
   function allApps() { return BUILTINS.concat(state.user); }
+  // An app can be hidden from the dock (toggle in Settings) without deleting it. Hidden
+  // is dock-only — publishApps still allows every added site so the lockdown can't bounce her.
+  function isHidden(id) { return state.hidden.indexOf(id) >= 0; }
+  function visibleApps() { return allApps().filter(function (a) { return !isHidden(a.id); }); }
+  function toggleHidden(id) {
+    if (isHidden(id)) {
+      state.hidden = state.hidden.filter(function (x) { return x !== id; });
+    } else {
+      if (visibleApps().length <= 1) { renderManage(); return; }   // never hide the last app — keeps the dock from going empty
+      state.hidden = state.hidden.concat([id]);
+    }
+    save({ 'qh-hidden-apps': state.hidden }); renderApps(); renderManage();
+  }
   // Publish the one app list's URLs so the lockdown (background.js) allows exactly these sites.
   function publishApps() { try { save({ 'qh-app-urls': allApps().map(function (a) { return a.url; }) }); } catch (e) {} }
   function gradOf(a) { return 'linear-gradient(145deg,' + (a.c1 || '#cdbce6') + ',' + (a.c2 || '#b083e0') + ')'; }
@@ -129,7 +143,7 @@
           '<div class="qh-mini">Colour</div><div class="qh-swatches"></div>' +
           '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
         '</div>' +
-        '<div class="qh-mini qh-manage-label" style="display:none;">Your sites</div><div class="qh-manage-list"></div>' +
+        '<div class="qh-mini qh-manage-label">Your apps</div><div class="qh-manage-list"></div>' +
       '</div>' +
       '<div class="qh-section">Connection</div><div class="qh-group">' +
         '<button class="qh-row click" data-act="wifi"><div class="qh-label">Wi-Fi</div><div class="qh-sub qh-wifi-sub">Connected</div></button>' +
@@ -188,7 +202,7 @@
   function renderApps() {
     var panel = $('.qh-dock-panel'); if (!panel) return;
     var html = '<button class="qh-app" data-home="1"><span class="qh-app-icon qh-home-icon">' + I.home + '</span><span class="qh-app-name">Home</span></button><div class="qh-dock-sep"></div>';
-    allApps().forEach(function (a) {
+    visibleApps().forEach(function (a) {
       var inner = (a.builtin && a.icon) ? a.icon : '<span class="qh-app-letter">' + esc((a.name[0] || '?').toUpperCase()) + '</span>';
       html += '<button class="qh-app" data-url="' + esc(a.url) + '"><span class="qh-app-icon" style="background:' + gradOf(a) + '">' + inner + '</span><span class="qh-app-name">' + esc(a.name) + '</span></button>';
     });
@@ -198,7 +212,7 @@
       b.addEventListener('click', function () { window.location.href = b.getAttribute('data-url'); });
     });
   }
-  function removeApp(id) { state.user = state.user.filter(function (a) { return a.id !== id; }); save({ 'qh-user-apps': state.user }); publishApps(); renderApps(); renderManage(); }
+  function removeApp(id) { state.user = state.user.filter(function (a) { return a.id !== id; }); state.hidden = state.hidden.filter(function (x) { return x !== id; }); save({ 'qh-user-apps': state.user, 'qh-hidden-apps': state.hidden }); publishApps(); renderApps(); renderManage(); }
   function openPanel() { renderApps(); $('.qh-dock-panel').classList.add('open'); }
   function closePanel() { var p = $('.qh-dock-panel'); if (p) p.classList.remove('open'); }
   function togglePanel() { var p = $('.qh-dock-panel'); if (p.classList.contains('open')) closePanel(); else openPanel(); }
@@ -214,10 +228,20 @@
       wrap.appendChild(b);
     });
   }
+  // Lists EVERY app (built-in + your added sites). A toggle shows/hides it in the dock;
+  // Remove only appears on your own added sites (built-ins can be hidden, never removed).
   function renderManage() {
-    var list = $('.qh-manage-list'), label = $('.qh-manage-label'); if (!list) return;
-    label.style.display = state.user.length ? '' : 'none';
-    list.innerHTML = state.user.map(function (a) { return '<div class="qh-manage-row"><span class="qh-manage-dot" style="background:' + gradOf(a) + '"></span><span class="qh-manage-name">' + esc(a.name) + '</span><button class="qh-manage-x" data-mx="' + esc(a.id) + '">Remove</button></div>'; }).join('');
+    var list = $('.qh-manage-list'); if (!list) return;
+    list.innerHTML = allApps().map(function (a) {
+      var on = !isHidden(a.id);
+      return '<div class="qh-manage-row">' +
+        '<span class="qh-manage-dot" style="background:' + gradOf(a) + '"></span>' +
+        '<span class="qh-manage-name">' + esc(a.name) + '</span>' +
+        '<label class="qh-switch qh-mini-switch" title="Show in dock"><input type="checkbox" data-tog="' + esc(a.id) + '"' + (on ? ' checked' : '') + '><span class="qh-slider"></span></label>' +
+        (a.builtin ? '' : '<button class="qh-manage-x" data-mx="' + esc(a.id) + '">Remove</button>') +
+      '</div>';
+    }).join('');
+    [].forEach.call(list.querySelectorAll('[data-tog]'), function (t) { t.addEventListener('change', function () { toggleHidden(t.getAttribute('data-tog')); }); });
     [].forEach.call(list.querySelectorAll('[data-mx]'), function (x) { x.addEventListener('click', function () { removeApp(x.getAttribute('data-mx')); }); });
   }
   function saveAdd() {
@@ -390,6 +414,7 @@
       chrome.storage.onChanged.addListener(function (changes, area) {
         if (area !== 'local') return;
         if (changes['qh-user-apps']) { state.user = Array.isArray(changes['qh-user-apps'].newValue) ? changes['qh-user-apps'].newValue : []; renderApps(); renderManage(); }
+        if (changes['qh-hidden-apps']) { state.hidden = Array.isArray(changes['qh-hidden-apps'].newValue) ? changes['qh-hidden-apps'].newValue : []; renderApps(); renderManage(); }
         if (changes['qh-theme'] && THEMES.indexOf(changes['qh-theme'].newValue) >= 0) { state.theme = changes['qh-theme'].newValue; applyLook(); buildThemeDots(); }
         if (changes['qh-brightness']) { state.brightness = parseInt(changes['qh-brightness'].newValue, 10) || 100; applyLook(); }
         if (changes['qh-night']) { state.night = !!changes['qh-night'].newValue; applyLook(); }

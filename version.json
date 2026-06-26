@@ -1,6 +1,6 @@
 {
-  "version": "2.1.5",
-  "emoji": "📚",
+  "version": "2.1.6",
+  "emoji": "🖋️",
   "date": "2026-06-26",
-  "notes": "Settings tidy-up: removed Google account and the Storage readout, themes renamed Light / Wood / Grey / Dark, the Tint slider now only shows on Light & Dark, Power is three little icons in one row, and the panel is wider and roomier."
+  "notes": "Settings now lists all your apps with an on/off switch — hide one from the dock without deleting it, or Remove the ones you added. (You can't hide your last app, so the dock is never empty.)"
 }
