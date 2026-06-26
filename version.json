@@ -1,6 +1,6 @@
 {
-  "version": "2.1.8",
-  "emoji": "🌸",
+  "version": "2.1.9",
+  "emoji": "🦉",
   "date": "2026-06-26",
-  "notes": "Settings has proper containers now — each section sits in its own card like the old app, the Apps list shows first under a single title (no more ‘Apps / Your apps’), roomier rows, the jarring scrollbar is hidden, and the panel is a bit shorter. The updater error also gives the right advice now."
+  "notes": "The apps dock is icon-only and tidy now — hover an app and its name slides out to the side, like a Mac dock. And the Google Docs icon in the Settings apps list isn’t cramped anymore."
 }

@@ -58,18 +58,20 @@
 }
 .qh-dock-btn:hover { transform: translateY(-2px); }
 .qh-dock-panel {
-  position: fixed; bottom: 78px; right: 18px; width: 234px; max-height: 64vh; overflow-y: auto;
-  display: none; flex-direction: column; padding: 8px;
+  position: fixed; bottom: 78px; right: 18px; overflow: visible;
+  display: none; flex-direction: column; align-items: center; gap: 2px; padding: 8px;
   background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 18px 50px rgba(0,0,0,0.26);
 }
 .qh-dock-panel.open { display: flex; animation: qh-pop 0.16s ease; }
 @keyframes qh-pop { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.qh-app { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px; border: none; background: none; cursor: pointer; font-family: inherit; border-radius: 10px; text-align: left; }
+.qh-app { position: relative; display: flex; align-items: center; justify-content: center; padding: 6px; border: none; background: none; cursor: pointer; font-family: inherit; border-radius: 12px; }
 .qh-app:hover { background: var(--row-hover); }
-.qh-app-icon { width: 38px; height: 38px; border-radius: var(--r-icon); flex: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.10); color: #fff; }
+.qh-app:hover .qh-app-icon { transform: scale(1.06); }
+.qh-app:hover .qh-app-name { opacity: 1; }
+.qh-app-icon { width: 38px; height: 38px; border-radius: var(--r-icon); flex: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.10); color: #fff; transition: transform 0.12s ease; }
 .qh-app-letter { color: #fff; font-weight: 600; font-size: 17px; line-height: 1; }
-.qh-app-name { font-size: 13.5px; color: var(--text-strong); }
-.qh-dock-sep { height: 1px; background: var(--row-hover); margin: 6px 4px; }
+.qh-app-name { position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%); white-space: nowrap; font-size: 13px; color: var(--text-strong); background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 11px; box-shadow: 0 6px 18px rgba(0,0,0,0.16); opacity: 0; pointer-events: none; transition: opacity 0.12s ease; }
+.qh-dock-sep { height: 1px; width: 30px; background: var(--row-hover); margin: 6px auto; }
 .qh-home-icon { background: linear-gradient(145deg, #dfeede, #bcd9bc); }
 /* ── Popups (settings / update share this frame) ── */
 .qh-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.22); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
@@ -148,6 +150,7 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-manage-row { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-bottom: 1px solid var(--row-hover); }
 .qh-manage-row:last-child { border-bottom: none; }
 .qh-manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+.qh-manage-dot svg { width: 13px; height: 13px; }
 .qh-manage-name { flex: 1; font-size: 13px; color: var(--text-strong); }
 .qh-manage-x { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 4px 8px; border-radius: 7px; }
 .qh-manage-x:hover { background: var(--row-hover); color: #e06a6a; }
