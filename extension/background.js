@@ -1,13 +1,16 @@
 /* ===========================================================================
    Quill Haven 2.0 — background worker.
 
-   Two jobs:
+   Three jobs:
    1. Relay the shell's power / Wi-Fi / support buttons to the local helper (127.0.0.1:8137).
       A web page can't reliably reach the helper itself, so the shell messages
       here and this worker (which has host permission) makes the call.
    2. LOCKDOWN — keep the laptop on your approved writing apps. Any top-level
       navigation to a site that isn't approved is bounced back to the home
       screen, so you can never get stuck on a random or broken page.
+   3. SCREEN-OFF — power the display down after a few quiet minutes to save
+      battery, using Chrome's own idle detector (real keyboard/mouse, so it
+      never blanks while you're typing into an app's inner editing frame).
 
    The approved list is the SAME shared app list (kept in chrome.storage by the
    home screen) plus the Google sign-in / Drive infrastructure that Google Docs
@@ -21,7 +24,7 @@ var HELPER = 'http://127.0.0.1:8137';
 /* ── 1. Relay helper actions ── */
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'helper' || typeof msg.path !== 'string') return;
-  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update', '/screen-off'];
+  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update'];
   if (ALLOWED.indexOf(msg.path) < 0) { sendResponse({ ok: false, reason: 'not-allowed' }); return; }
   fetch(HELPER + msg.path, { method: 'POST' })
     .then(function () { sendResponse({ ok: true }); })
@@ -103,3 +106,14 @@ chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
   if (isAllowed(hostOf(d.url))) return;
   sendHome(d.tabId);                           // blocked → back home
 });
+
+/* ── 3. Screen-off when idle (battery) ── */
+// Chrome's idle detector watches the REAL keyboard/mouse, so it never trips
+// while she's typing into an app's inner editing frame. After ~5 quiet minutes
+// the helper powers the display down (xset dpms); any key/touch wakes it.
+if (chrome.idle && chrome.idle.setDetectionInterval) {
+  chrome.idle.setDetectionInterval(300);
+  chrome.idle.onStateChanged.addListener(function (s) {
+    if (s === 'idle') fetch(HELPER + '/screen-off', { method: 'POST' }).catch(function () {});
+  });
+}

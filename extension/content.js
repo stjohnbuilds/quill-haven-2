@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.2.1', emoji: '🔋' };
+  var LOCAL = { version: '2.2.2', emoji: '🕯️' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -52,7 +52,7 @@
     home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
     grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>',
     sleep: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
-    restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+    restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
     poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>'
   };
 
@@ -354,11 +354,12 @@
     var pct = 6; if (fill) fill.style.width = pct + '%';
     if (_updTimer) clearInterval(_updTimer);
     _updTimer = setInterval(function () { pct += (93 - pct) * 0.07; if (fill) fill.style.width = Math.min(93, pct).toFixed(0) + '%'; }, 320);
-    // The update restarts Chromium, which closes the message port before the
-    // success reply gets back — a missing/empty response is NORMAL, not a failure.
-    // Only show the error if the updater EXPLICITLY reports it failed; the 35s
-    // fallback below still catches a genuine hang.
-    helper('/apply-update', function (res) { if (res && res.ok === false) updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); });
+    // Fire and forget: applying the update restarts Chromium, which kills the
+    // connection before the reply returns — so the relay ALWAYS reports a dropped
+    // connection here, even on success. We can't tell success from failure at this
+    // moment, so we ignore the reply entirely. The ONLY reliable failure signal is
+    // the 35s fallback below: if nothing happened (no restart), it shows the error.
+    helper('/apply-update', function () {});
     if (_updFallback) clearTimeout(_updFallback);
     _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Switch the laptop off and on, then tap Update again.'); }, 35000);
   }
@@ -513,25 +514,6 @@
     grip.addEventListener('pointercancel', end);
   }
 
-  // ── Screen-off when idle (battery) — blank the display after a few quiet ──
-  // minutes of no typing/touching; any key or touch wakes it instantly. The
-  // helper does the real power-down (xset dpms). Throttled so a moving mouse
-  // doesn't reset the timer hundreds of times a second.
-  var IDLE_MS = 4 * 60 * 1000, _idleTimer = null, _lastPoke = 0;
-  function pokeIdle() {
-    var now = Date.now();
-    if (now - _lastPoke < 4000) return;
-    _lastPoke = now;
-    if (_idleTimer) clearTimeout(_idleTimer);
-    _idleTimer = setTimeout(function () { helper('/screen-off'); }, IDLE_MS);
-  }
-  function initIdle() {
-    ['keydown', 'mousemove', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
-      window.addEventListener(ev, pokeIdle, { passive: true });
-    });
-    pokeIdle();
-  }
-
   function start() {
     document.documentElement.appendChild(host);
     wire();
@@ -548,7 +530,6 @@
       initBattery(); syncWifi();
       window.addEventListener('online', syncWifi); window.addEventListener('offline', syncWifi);
       checkUpdate(); setInterval(checkUpdate, 30 * 60 * 1000);
-      initIdle();
       watchStorage();
     });
   }

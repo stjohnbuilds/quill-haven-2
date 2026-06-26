@@ -1,6 +1,6 @@
 {
-  "version": "2.2.1",
-  "emoji": "🔋",
+  "version": "2.2.2",
+  "emoji": "🕯️",
   "date": "2026-06-26",
-  "notes": "Battery saver: the screen now switches itself off after a few quiet minutes (no typing or touching) and wakes the instant you touch it. First real power-saving step."
+  "notes": "Three fixes: the false ‘couldn’t reach the updater’ message is gone for good, the restart icon now has a clean gap, and the screen-off battery saver now uses the real keyboard/mouse so it can never blank while you’re typing."
 }
