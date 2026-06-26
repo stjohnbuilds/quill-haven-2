@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.9', emoji: '🦉' };
+  var LOCAL = { version: '2.2.0', emoji: '🪶' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -120,7 +120,11 @@
   link.href = chrome.runtime.getURL('shell.css');
   // Reveal only once the stylesheet is applied (with a fallback so a failed load
   // can never leave the shell invisible).
-  function revealShell() { host.style.setProperty('visibility', 'visible', 'important'); }
+  // Re-assert the saved bar position here too: applyBarPos() in start() can run
+  // before shell.css makes .qh-bar position:fixed, so the inline left/top don't
+  // take and the bar snaps back to the right edge. Re-applying once the stylesheet
+  // is live makes the dragged position stick on reload.
+  function revealShell() { host.style.setProperty('visibility', 'visible', 'important'); try { applyBarPos(); } catch (e) {} }
   link.addEventListener('load', revealShell);
   setTimeout(revealShell, 1500);
 
@@ -350,7 +354,11 @@
     var pct = 6; if (fill) fill.style.width = pct + '%';
     if (_updTimer) clearInterval(_updTimer);
     _updTimer = setInterval(function () { pct += (93 - pct) * 0.07; if (fill) fill.style.width = Math.min(93, pct).toFixed(0) + '%'; }, 320);
-    helper('/apply-update', function (res) { if (!res || !res.ok) updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); });
+    // The update restarts Chromium, which closes the message port before the
+    // success reply gets back — a missing/empty response is NORMAL, not a failure.
+    // Only show the error if the updater EXPLICITLY reports it failed; the 35s
+    // fallback below still catches a genuine hang.
+    helper('/apply-update', function (res) { if (res && res.ok === false) updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); });
     if (_updFallback) clearTimeout(_updFallback);
     _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Switch the laptop off and on, then tap Update again.'); }, 35000);
   }
@@ -513,6 +521,7 @@
       if (isHome) { try { chrome.storage.local.set({ 'qh-home-url': location.href }); state.homeUrl = location.href; } catch (e) {} }
       applyLook();
       applyBarPos(); setupBarDrag();
+      setTimeout(applyBarPos, 300);   // re-assert after layout settles (cached-CSS case)
       window.addEventListener('resize', applyBarPos);
       renderApps();
       publishApps();

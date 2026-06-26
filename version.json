@@ -1,6 +1,6 @@
 {
-  "version": "2.1.9",
-  "emoji": "🦉",
+  "version": "2.2.0",
+  "emoji": "🪶",
   "date": "2026-06-26",
-  "notes": "The apps dock is icon-only and tidy now — hover an app and its name slides out to the side, like a Mac dock. And the Google Docs icon in the Settings apps list isn’t cramped anymore."
+  "notes": "Two laptop fixes: the top bar now stays where you drag it after a reload, and the false ‘couldn’t reach the updater’ message no longer pops up when an update actually worked."
 }
