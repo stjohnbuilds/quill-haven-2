@@ -1,6 +1,6 @@
 {
-  "version": "2.2.3",
-  "emoji": "💤",
+  "version": "2.3.0",
+  "emoji": "🌜",
   "date": "2026-06-26",
-  "notes": "Adds a ‘Screen’ button to the Power buttons so you can turn the screen off on demand (tap any key to wake). It’s also a quick test of the battery screen-off — if this button blanks the screen, the auto version works too."
+  "notes": "Screen sleep you control: a new slider in Settings (Off / 30 sec / 1 min / 2 min / 5 min) sets when the screen turns itself off to save battery. The turn-off now uses a more reliable method so it actually works. Sliders are slimmer and tidier too."
 }

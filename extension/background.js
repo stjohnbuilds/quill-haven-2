@@ -112,8 +112,16 @@ chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
 // while she's typing into an app's inner editing frame. After ~5 quiet minutes
 // the helper powers the display down (xset dpms); any key/touch wakes it.
 if (chrome.idle && chrome.idle.setDetectionInterval) {
-  chrome.idle.setDetectionInterval(300);
+  var idleSecs = 300;                                  // matches the slider default (5 min)
+  function applyIdle() { chrome.idle.setDetectionInterval(idleSecs > 0 ? Math.max(15, idleSecs) : 86400); }
+  chrome.storage.local.get(['qh-screen-idle'], function (v) {
+    if (v && typeof v['qh-screen-idle'] === 'number') idleSecs = v['qh-screen-idle'];
+    applyIdle();
+  });
+  chrome.storage.onChanged.addListener(function (ch, area) {
+    if (area === 'local' && ch['qh-screen-idle']) { idleSecs = ch['qh-screen-idle'].newValue || 0; applyIdle(); }
+  });
   chrome.idle.onStateChanged.addListener(function (s) {
-    if (s === 'idle') fetch(HELPER + '/screen-off', { method: 'POST' }).catch(function () {});
+    if (s === 'idle' && idleSecs > 0) fetch(HELPER + '/screen-off', { method: 'POST' }).catch(function () {});
   });
 }
