@@ -1,6 +1,6 @@
 {
-  "version": "2.3.1",
-  "emoji": "🔭",
+  "version": "2.3.2",
+  "emoji": "🌈",
   "date": "2026-06-26",
-  "notes": "Adds a ‘Check for updates’ button to the version popup, so you can look for a new version yourself instead of waiting for it to appear."
+  "notes": "Updates are calmer now. The ‘taking longer than usual’ panic is gone — the app waits a few minutes for slow wifi and tells you to keep waiting instead of telling you to restart (which used to cancel the download)."
 }

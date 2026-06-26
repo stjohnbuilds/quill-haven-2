@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.1', emoji: '🔭' };
+  var LOCAL = { version: '2.3.2', emoji: '🌈' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -369,7 +369,7 @@
     var now = $('.qh-update-now'), st = $('.qh-update-status'), prog = $('.qh-update-progress'), fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
     if (now) now.style.display = 'none';
     if (cl) cl.style.visibility = 'hidden';            // can't cancel mid-update
-    if (st) st.textContent = 'Updating — the screen will restart in a moment.';
+    if (st) st.textContent = 'Updating — please wait. This can take a minute or two on slow wifi. The screen will restart by itself when it’s done.';
     if (wait) { wait.classList.remove('err'); wait.textContent = 'Please don’t touch anything.'; }
     if (prog) prog.style.display = '';
     var pct = 6; if (fill) fill.style.width = pct + '%';
@@ -382,7 +382,7 @@
     // the 35s fallback below: if nothing happened (no restart), it shows the error.
     helper('/apply-update', function () {});
     if (_updFallback) clearTimeout(_updFallback);
-    _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Switch the laptop off and on, then tap Update again.'); }, 35000);
+    _updFallback = setTimeout(function () { updateFailed('Still going — slow wifi can make this take a few minutes. Please keep waiting. Only if nothing has happened after several minutes, switch the laptop off and on and tap Update again.'); }, 180000);
   }
   function updateFailed(msg) {
     if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
