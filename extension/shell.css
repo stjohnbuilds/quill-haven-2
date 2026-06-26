@@ -1,134 +1,80 @@
 /* ===========================================================================
-   Quill Haven 2.0 — the floating shell's look (loaded INSIDE a shadow root).
-   This is the bar + app dock + settings that float on top of Google Docs and
-   any other page. It lives in its own shadow root so the host page's CSS can
-   never reach in and the shell's CSS can never leak out onto the page.
-
-   The colours/tokens below are the SAME palette as the home screen
-   (home-screen/css/theme.css + home.css) — reused, not invented — so the
-   floating shell and the home screen look like one app. Themes switch by a
-   class on the shadow host: (default = purple) / theme-wood / theme-slate /
-   theme-dark.
+   Quill Haven — THE shell stylesheet (the only place colours live).
+   Loaded inside the shadow root so the host page can't touch it and it can't
+   touch the host page. The design tokens below are the single source of truth
+   for the look; the home backdrop only borrows the wallpaper gradient.
+   Themes switch by a class on the shadow host: default purple / wood / slate / dark.
    =========================================================================== */
 
 :host {
   --ui-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-  --text-strong: #595254;
-  --text-soft: #6b5f6e;
-  --text-muted: #a893b0;
-
-  --bar-bg: rgba(255,255,255,0.55);
-  --bar-border: rgba(255,255,255,0.55);
-  --panel-bg: #ffffff;
-  --card-border: rgba(147,128,159,0.12);
-  --row-hover: rgba(147,128,159,0.06);
-
-  --accent: #c9a0e0;
-  --accent-strong: #8a6f9e;
-
-  --r-card: 16px;
-  --r-icon: 14px;
-  --r-btn: 7px;
-
+  --text-strong: #595254; --text-soft: #6b5f6e; --text-muted: #a893b0;
+  --bar-bg: rgba(255,255,255,0.55); --bar-border: rgba(255,255,255,0.55);
+  --panel-bg: #ffffff; --card-border: rgba(147,128,159,0.12); --row-hover: rgba(147,128,159,0.06);
+  --accent: #c9a0e0; --accent-strong: #8a6f9e;
+  --r-card: 16px; --r-icon: 14px;
   font-family: var(--ui-font);
 }
-
-:host(.theme-wood) {
-  --bar-bg: rgba(252,251,249,0.62); --bar-border: rgba(255,255,255,0.5);
-  --accent: #897e72; --accent-strong: #675e54;
-}
-:host(.theme-slate) {
-  --bar-bg: rgba(250,250,252,0.62); --bar-border: rgba(255,255,255,0.5);
-  --accent: #8c919b; --accent-strong: #6b7079;
-}
-:host(.theme-dark) {
-  --text-strong: #d8cce0; --text-soft: #a898b0; --text-muted: #887898;
-  --bar-bg: rgba(30,26,40,0.72); --bar-border: rgba(255,255,255,0.08);
-  --panel-bg: rgba(30,26,40,0.98); --card-border: rgba(255,255,255,0.09);
-  --row-hover: rgba(255,255,255,0.06);
-  --accent: #c9a0e0; --accent-strong: #b083e0;
-}
+:host(.theme-wood)  { --bar-bg: rgba(252,251,249,0.62); --accent: #897e72; --accent-strong: #675e54; }
+:host(.theme-slate) { --bar-bg: rgba(250,250,252,0.62); --accent: #8c919b; --accent-strong: #6b7079; }
+:host(.theme-dark)  { --text-strong: #d8cce0; --text-soft: #a898b0; --text-muted: #887898;
+  --bar-bg: rgba(30,26,40,0.72); --bar-border: rgba(255,255,255,0.08); --panel-bg: rgba(30,26,40,0.98);
+  --card-border: rgba(255,255,255,0.09); --row-hover: rgba(255,255,255,0.06); --accent: #c9a0e0; --accent-strong: #b083e0; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+.qh-bar, .qh-dock-btn, .qh-dock-panel, .qh-overlay { pointer-events: auto; }
 
-/* Everything floats; the wrapper itself lets clicks pass through to the page,
-   only the actual controls below catch taps. */
-.qh-bar, .qh-dock-btn, .qh-dock-panel, .qh-settings-overlay { pointer-events: auto; }
+/* ── Screen dimmer (brightness + night light) — the ONE filter ── */
+.qh-screen-filter { position: fixed; inset: 0; pointer-events: none; background: #000; opacity: 0; transition: opacity 0.2s ease, background 0.3s ease; }
+.qh-screen-filter.night { background: #ff8a3d; }
 
-/* ── Top-right status bar (tucked in the corner so it never covers a page's
-      own top menu, e.g. Google Docs') ── */
+/* ── Top-right bar ── */
 .qh-bar {
-  position: fixed; top: 8px; right: 10px;
-  display: flex; align-items: center; gap: 2px;
+  position: fixed; top: 8px; right: 10px; display: flex; align-items: center; gap: 2px;
   height: 34px; padding: 0 6px 0 8px; font-size: 12px; color: var(--text-soft);
-  background: var(--bar-bg); border: 1px solid var(--bar-border);
-  border-radius: 18px;
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  background: var(--bar-bg); border: 1px solid var(--bar-border); border-radius: 18px;
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 6px 20px rgba(0,0,0,0.10);
 }
-.qh-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: none; border: none; cursor: pointer; color: var(--text-muted);
-  padding: 4px 6px; border-radius: 7px; transition: background 0.15s, color 0.15s;
-}
+.qh-icon { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px; border-radius: 7px; transition: background 0.15s, color 0.15s; }
 .qh-icon:hover { background: var(--row-hover); color: var(--text-soft); }
+.qh-version { font-size: 14px; line-height: 1; position: relative; }
+.qh-version .qh-emoji { display: inline-block; }
+.qh-version.has-update .qh-emoji { animation: qh-pulse 1.6s ease-in-out infinite; }
+.qh-version.has-update::after { content: ''; position: absolute; top: 1px; right: 2px; width: 7px; height: 7px; border-radius: 50%; background: #e0795a; box-shadow: 0 0 0 2px var(--bar-bg); }
+@keyframes qh-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
 .qh-time { margin: 0 4px 0 6px; color: var(--text-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* ── Bottom-right apps button + pop-out card ── */
+/* ── Bottom-right apps button + pop-out ── */
 .qh-dock-btn {
-  position: fixed; bottom: 18px; right: 18px;
-  width: 50px; height: 50px; border-radius: 50%;
+  position: fixed; bottom: 18px; right: 18px; width: 50px; height: 50px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: var(--bar-bg); border: 1px solid var(--bar-border); color: var(--text-soft);
-  cursor: pointer;
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-  transition: transform 0.15s ease;
+  background: var(--bar-bg); border: 1px solid var(--bar-border); color: var(--text-soft); cursor: pointer;
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 8px 24px rgba(0,0,0,0.14); transition: transform 0.15s ease;
 }
 .qh-dock-btn:hover { transform: translateY(-2px); }
-
 .qh-dock-panel {
-  position: fixed; bottom: 78px; right: 18px;
-  width: 230px; max-height: 60vh; overflow-y: auto;
+  position: fixed; bottom: 78px; right: 18px; width: 234px; max-height: 64vh; overflow-y: auto;
   display: none; flex-direction: column; padding: 8px;
-  background: var(--panel-bg); border: 1px solid var(--card-border);
-  border-radius: var(--r-card); box-shadow: 0 18px 50px rgba(0,0,0,0.26);
+  background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 18px 50px rgba(0,0,0,0.26);
 }
 .qh-dock-panel.open { display: flex; animation: qh-pop 0.16s ease; }
 @keyframes qh-pop { from { transform: translateY(6px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.qh-app {
-  display: flex; align-items: center; gap: 11px; width: 100%;
-  padding: 8px; border: none; background: none; cursor: pointer; font-family: inherit;
-  border-radius: 10px; text-align: left;
-}
+.qh-app { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; padding: 8px; border: none; background: none; cursor: pointer; font-family: inherit; border-radius: 10px; text-align: left; }
 .qh-app:hover { background: var(--row-hover); }
-.qh-app-icon {
-  width: 38px; height: 38px; border-radius: var(--r-icon); flex: none;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.10);
-}
+.qh-app-icon { width: 38px; height: 38px; border-radius: var(--r-icon); flex: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.10); }
 .qh-app-letter { color: #fff; font-weight: 600; font-size: 17px; line-height: 1; }
 .qh-app-name { font-size: 13.5px; color: var(--text-strong); }
 .qh-dock-sep { height: 1px; background: var(--row-hover); margin: 6px 4px; }
 .qh-home-icon { background: linear-gradient(145deg, #dfeede, #bcd9bc); }
+.qh-add-icon { background: linear-gradient(145deg, #dfeede, #bcd9bc); }
+.qh-app-x { position: absolute; top: 4px; right: 6px; width: 18px; height: 18px; border-radius: 50%; border: none; cursor: pointer; background: rgba(0,0,0,0.32); color: #fff; font-size: 11px; line-height: 1; display: none; align-items: center; justify-content: center; }
+.qh-app.removable:hover .qh-app-x { display: flex; }
 
-/* ── Settings popup (the same one settings, centred) ── */
-.qh-settings-overlay {
-  position: fixed; inset: 0; display: none;
-  align-items: center; justify-content: center; padding: 20px;
-  background: rgba(0,0,0,0.22); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-}
-.qh-settings-overlay.open { display: flex; animation: qh-fade 0.15s ease; }
+/* ── Popups (settings / add / update share this frame) ── */
+.qh-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.22); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.qh-overlay.open { display: flex; animation: qh-fade 0.15s ease; }
 @keyframes qh-fade { from { opacity: 0; } to { opacity: 1; } }
-.qh-card {
-  width: 100%; max-width: 380px; max-height: calc(100vh - 56px);
-  display: flex; flex-direction: column; overflow-y: auto;
-  background: var(--panel-bg); border: 1px solid var(--card-border);
-  border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28);
-  animation: qh-scale 0.16s ease;
-}
+.qh-card { width: 100%; max-width: 380px; max-height: calc(100vh - 56px); display: flex; flex-direction: column; overflow-y: auto; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28); animation: qh-scale 0.16s ease; }
 @keyframes qh-scale { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .qh-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 8px; }
 .qh-title { font-size: 17px; font-weight: 600; color: var(--text-strong); }
@@ -136,11 +82,7 @@
 .qh-close:hover { background: var(--row-hover); }
 .qh-section { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); padding: 10px 18px 6px; }
 .qh-group { margin: 0 14px; }
-.qh-row {
-  width: 100%; text-align: left; background: none; border: none; font-family: inherit;
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding: 11px 6px; border-bottom: 1px solid var(--row-hover); cursor: default;
-}
+.qh-row { width: 100%; text-align: left; background: none; border: none; font-family: inherit; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 6px; border-bottom: 1px solid var(--row-hover); cursor: default; }
 .qh-row:last-child { border-bottom: none; }
 .qh-row.click { cursor: pointer; border-radius: 8px; }
 .qh-row.click:hover { background: var(--row-hover); }
@@ -151,11 +93,7 @@
 .qh-foot { text-align: center; font-size: 11px; color: var(--text-muted); padding: 14px 0 16px; margin-top: 6px; }
 
 input[type="range"] { width: 100%; accent-color: var(--accent); }
-select {
-  font-family: inherit; font-size: 12.5px; color: var(--text-strong);
-  background: var(--row-hover); border: 1px solid var(--card-border);
-  border-radius: 7px; padding: 5px 8px;
-}
+select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 7px; padding: 5px 8px; }
 
 .qh-theme-dots { display: flex; gap: 12px; }
 .qh-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
@@ -173,9 +111,32 @@ select {
 .qh-switch input:checked + .qh-slider { background: var(--accent); }
 .qh-switch input:checked + .qh-slider::before { transform: translateX(18px); }
 
-/* The warm Night Light wash + brightness dim, applied over the whole page. */
-.qh-screen-filter {
-  position: fixed; inset: 0; pointer-events: none;
-  background: #000; opacity: 0; transition: opacity 0.2s ease, background 0.3s ease;
-}
-.qh-screen-filter.night { background: #ff8a3d; }
+/* ── Add-a-website ── */
+.qh-add-body { padding: 4px 18px 18px; display: flex; flex-direction: column; }
+.qh-input { font-family: inherit; font-size: 14px; color: var(--text-strong); background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 9px; padding: 10px 12px; margin-bottom: 10px; outline: none; }
+.qh-input:focus { border-color: var(--accent); }
+.qh-mini { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 6px 0 8px; }
+.qh-swatches { display: flex; gap: 10px; }
+.qh-swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
+.qh-swatch span { display: block; width: 100%; height: 100%; border-radius: 7px; }
+.qh-swatch.active { border-color: var(--accent-strong); }
+.qh-add-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.qh-btn-cancel, .qh-btn-save { border: none; border-radius: 8px; padding: 9px 16px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.qh-btn-cancel { background: var(--row-hover); color: var(--text-strong); }
+.qh-btn-save { background: var(--accent); color: #fff; }
+.qh-btn-cancel:hover, .qh-btn-save:hover { opacity: 0.88; }
+.qh-manage-list { display: flex; flex-direction: column; }
+.qh-manage-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--row-hover); }
+.qh-manage-row:last-child { border-bottom: none; }
+.qh-manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; }
+.qh-manage-name { flex: 1; font-size: 13px; color: var(--text-strong); }
+.qh-manage-x { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 4px 8px; border-radius: 7px; }
+.qh-manage-x:hover { background: var(--row-hover); color: #e06a6a; }
+
+/* ── Version / update ── */
+.qh-update-body { padding: 6px 22px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.qh-update-emoji { font-size: 46px; line-height: 1; margin: 8px 0 12px; }
+.qh-update-version { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.qh-update-status { font-size: 13.5px; color: var(--text-soft); margin-top: 8px; }
+.qh-update-notes { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.55; }
+.qh-update-now { margin-top: 20px; align-self: stretch; }

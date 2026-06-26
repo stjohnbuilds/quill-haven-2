@@ -1,15 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Quill Haven Shell",
-  "version": "0.1.0",
-  "description": "Floats the Quill Haven bar, app switcher and settings on top of every page, and keeps the laptop locked to your approved writing apps (a blocked page bounces home).",
+  "name": "Quill Haven",
+  "version": "2.1.0",
+  "description": "The Quill Haven shell — one bar, dock and settings on every page — plus the lockdown that keeps the laptop on your writing apps.",
   "permissions": ["storage", "webNavigation", "tabs"],
   "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["content.js"],
+      "js": ["apps.js", "content.js"],
       "run_at": "document_idle",
       "all_frames": false
     }
