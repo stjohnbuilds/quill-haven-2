@@ -36,13 +36,14 @@ html, body {
 }
 html.qh-hue-on body { filter: hue-rotate(var(--qh-hue)); }
 
+/* Soft blurred blobs for a calm backdrop. They are STATIC on purpose: animating a
+   large 80px blur every frame re-rasterises the whole blur 60×/sec — three at once
+   pegged the CPU/GPU and ran the fans non-stop on a light laptop. Drawn once, they
+   cost almost nothing and look the same. */
 .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
-.orb-1 { width: 420px; height: 420px; background: var(--orb1); top: -120px; right: -60px; animation: drift1 20s ease-in-out infinite; }
-.orb-2 { width: 360px; height: 360px; background: var(--orb2); bottom: -100px; left: -80px; animation: drift2 25s ease-in-out infinite; }
-.orb-3 { width: 280px; height: 280px; background: var(--orb3); top: 35%; left: 55%; animation: drift3 22s ease-in-out infinite; }
-@keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-40px,35px); } }
-@keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-45px); } }
-@keyframes drift3 { 0%,100% { transform: translate(-50%,-50%); } 50% { transform: translate(calc(-50% + 25px),calc(-50% - 20px)); } }
+.orb-1 { width: 420px; height: 420px; background: var(--orb1); top: -120px; right: -60px; }
+.orb-2 { width: 360px; height: 360px; background: var(--orb2); bottom: -100px; left: -80px; }
+.orb-3 { width: 280px; height: 280px; background: var(--orb3); top: 35%; left: 55%; transform: translate(-50%, -50%); }
 
 .stage {
   position: relative; z-index: 1; height: 100%;
