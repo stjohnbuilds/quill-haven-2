@@ -1,6 +1,6 @@
 {
-  "version": "2.1.0",
-  "emoji": "🌳",
+  "version": "2.1.1",
+  "emoji": "🍃",
   "date": "2026-06-25",
-  "notes": "One interface. The bar, dock and settings are now a single shell shown on every page — no more two-of-everything. Same look on the home screen and inside Google Docs."
+  "notes": "Polish: no more flash of raw shell/code when switching apps or booting, the battery percent now shows in the bar, and a softer (less pink) night light."
 }

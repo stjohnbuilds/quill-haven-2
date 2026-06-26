@@ -26,7 +26,7 @@
   var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.0', emoji: '🌳' };
+  var LOCAL = { version: '2.1.1', emoji: '🍃' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -78,12 +78,19 @@
   // ── Build the shell inside one shadow root ──
   var host = document.createElement('div');
   host.id = 'qh-shell-host';
-  var lock = { position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', margin: '0', width: '100%', height: '100%', border: '0', 'pointer-events': 'none', 'z-index': '2147483600' };
+  // Start hidden so the page never shows the shell's raw, unstyled markup for a
+  // split second before shell.css loads (the "flash of code" on each app switch).
+  var lock = { position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', margin: '0', width: '100%', height: '100%', border: '0', 'pointer-events': 'none', 'z-index': '2147483600', visibility: 'hidden' };
   for (var k in lock) host.style.setProperty(k, lock[k], 'important');
   var root = host.attachShadow({ mode: 'open' });
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = chrome.runtime.getURL('shell.css');
+  // Reveal only once the stylesheet is applied (with a fallback so a failed load
+  // can never leave the shell invisible).
+  function revealShell() { host.style.setProperty('visibility', 'visible', 'important'); }
+  link.addEventListener('load', revealShell);
+  setTimeout(revealShell, 1500);
 
   var ui = document.createElement('div');
   ui.innerHTML =
@@ -91,6 +98,7 @@
     '<div class="qh-bar">' +
       '<button class="qh-icon" data-act="wifi" title="Wi-Fi">' + I.wifi + '</button>' +
       '<button class="qh-icon" data-act="battery" title="Battery">' + I.battery + '</button>' +
+      '<span class="qh-batt-pct"></span>' +
       '<button class="qh-icon" data-act="power" title="Power">' + I.power + '</button>' +
       '<button class="qh-icon" data-act="settings" title="Settings">' + I.gear + '</button>' +
       '<button class="qh-icon qh-version" data-act="version" title="Version"><span class="qh-emoji">' + LOCAL.emoji + '</span></button>' +
@@ -273,10 +281,12 @@
     if (!navigator.getBattery) return;
     navigator.getBattery().then(function (b) {
       function sync() {
-        var fill = $('.qh-batt-fill'), bolt = $('.qh-batt-bolt'), icon = $('[data-act="battery"]');
+        var fill = $('.qh-batt-fill'), bolt = $('.qh-batt-bolt'), icon = $('[data-act="battery"]'), pctEl = $('.qh-batt-pct');
+        var pct = Math.round((b.level || 0) * 100);
         if (fill) fill.setAttribute('width', String(Math.max(0.5, Math.min(15, 15 * (b.level || 0)))));
         if (bolt) bolt.style.display = b.charging ? '' : 'none';
-        if (icon) { var pct = Math.round((b.level || 0) * 100); var secs = b.charging ? b.chargingTime : b.dischargingTime, extra = ''; if (secs && secs !== Infinity) { var hh = Math.floor(secs / 3600), mm = Math.round((secs % 3600) / 60); extra = ' · ' + (hh ? hh + 'h ' : '') + pad(mm) + 'm ' + (b.charging ? 'to full' : 'left'); } icon.title = pct + '%' + (b.charging ? ' (charging)' : '') + extra; }
+        if (pctEl) pctEl.textContent = pct + '%';   // always visible (not hover-only)
+        if (icon) { var secs = b.charging ? b.chargingTime : b.dischargingTime, extra = ''; if (secs && secs !== Infinity) { var hh = Math.floor(secs / 3600), mm = Math.round((secs % 3600) / 60); extra = ' · ' + (hh ? hh + 'h ' : '') + pad(mm) + 'm ' + (b.charging ? 'to full' : 'left'); } icon.title = pct + '%' + (b.charging ? ' (charging)' : '') + extra; }
       }
       b.addEventListener('levelchange', sync); b.addEventListener('chargingchange', sync); b.addEventListener('chargingtimechange', sync); b.addEventListener('dischargingtimechange', sync); sync();
     }).catch(function () {});

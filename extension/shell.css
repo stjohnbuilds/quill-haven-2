@@ -26,7 +26,8 @@
 
 /* ── Screen dimmer (brightness + night light) — the ONE filter ── */
 .qh-screen-filter { position: fixed; inset: 0; pointer-events: none; background: #000; opacity: 0; transition: opacity 0.2s ease, background 0.3s ease; }
-.qh-screen-filter.night { background: #ff8a3d; }
+/* Night light: a soft warm gold (was a flat orange that read as dull pink). */
+.qh-screen-filter.night { background: #f4b860; }
 
 /* ── Top-right bar ── */
 .qh-bar {
@@ -42,6 +43,7 @@
 .qh-version.has-update .qh-emoji { animation: qh-pulse 1.6s ease-in-out infinite; }
 .qh-version.has-update::after { content: ''; position: absolute; top: 1px; right: 2px; width: 7px; height: 7px; border-radius: 50%; background: #e0795a; box-shadow: 0 0 0 2px var(--bar-bg); }
 @keyframes qh-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+.qh-batt-pct { font-size: 11px; color: var(--text-muted); margin: 0 2px 0 -3px; font-variant-numeric: tabular-nums; }
 .qh-time { margin: 0 4px 0 6px; color: var(--text-soft); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ── Bottom-right apps button + pop-out ── */
