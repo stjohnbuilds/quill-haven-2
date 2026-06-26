@@ -3,7 +3,7 @@
 
    This runs on EVERY page (the home backdrop AND inside Google Docs/Dabble) and
    draws, inside one shadow root so no page can touch it:
-     • the top-right bar  (Wi-Fi, battery, power, settings, version emoji, clock)
+     • the top-right bar  (Wi-Fi, battery, settings, version emoji, clock)
      • the bottom-right apps button  (opens your apps + Home)
      • the one settings popup  (Look / Apps / Account / Connection / Device / Power)
      • the one screen dimmer  (brightness + night light)
@@ -26,7 +26,7 @@
   var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.2', emoji: '🌙' };
+  var LOCAL = { version: '2.1.3', emoji: '✨' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -35,7 +35,6 @@
 
   var I = {
     wifi: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>',
-    power: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>',
     gear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
     battery: '<svg width="22" height="14" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="22" height="10" rx="2.5"/><rect class="qh-batt-fill" x="3.5" y="4.5" width="15" height="5" rx="1" fill="currentColor" stroke="none" opacity="0.65"/><rect x="23" y="5" width="3" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.4"/></svg><svg class="qh-batt-bolt" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="display:none;margin-left:-15px;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
     apps: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
@@ -47,6 +46,7 @@
   // ── State (the ONE store: chrome.storage) ──
   var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], homeUrl: '' };
   var pendingUpdate = null;
+  var _updTimer = null, _updFallback = null;
   var pickedColor = SWATCHES[3];
   var isHome = document.documentElement.hasAttribute('data-qh-home');
 
@@ -68,7 +68,7 @@
     } catch (e) { cb(); }
   }
   function save(o) { try { chrome.storage.local.set(o); } catch (e) {} }
-  function helper(path) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function () { void chrome.runtime.lastError; }); } catch (e) {} }
+  function helper(path, cb) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function (res) { void chrome.runtime.lastError; if (cb) cb(res); }); } catch (e) { if (cb) cb(null); } }
 
   function allApps() { return BUILTINS.concat(state.user); }
   // Publish the one app list's URLs so the lockdown (background.js) allows exactly these sites.
@@ -100,7 +100,6 @@
       '<button class="qh-icon" data-act="wifi" title="Wi-Fi">' + I.wifi + '</button>' +
       '<button class="qh-icon" data-act="battery" title="Battery">' + I.battery + '</button>' +
       '<span class="qh-batt-pct"></span>' +
-      '<button class="qh-icon" data-act="power" title="Power">' + I.power + '</button>' +
       '<button class="qh-icon" data-act="settings" title="Settings">' + I.gear + '</button>' +
       '<button class="qh-icon qh-version" data-act="version" title="Version"><span class="qh-emoji">' + LOCAL.emoji + '</span></button>' +
       '<span class="qh-time"></span>' +
@@ -150,8 +149,11 @@
         '<div class="qh-update-emoji">' + LOCAL.emoji + '</div>' +
         '<div class="qh-update-version">Version ' + esc(LOCAL.version) + '</div>' +
         '<div class="qh-update-status">You’re up to date.</div>' +
-        '<div class="qh-update-notes"></div>' +
         '<button class="qh-btn-save qh-update-now" style="display:none;">Update now</button>' +
+        '<div class="qh-update-progress" style="display:none;">' +
+          '<div class="qh-update-bar"><div class="qh-update-bar-fill"></div></div>' +
+          '<div class="qh-update-wait"></div>' +
+        '</div>' +
       '</div>' +
     '</div></div>';
 
@@ -268,21 +270,53 @@
       if (j && j.version && String(j.version) !== LOCAL.version) { pendingUpdate = j; markUpdate(true); } else { pendingUpdate = null; markUpdate(false); }
     }).catch(function () {});
   }
+  function resetUpdateUI() {
+    if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
+    if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
+    var prog = $('.qh-update-progress'), fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (prog) prog.style.display = 'none';
+    if (fill) fill.style.width = '0%';
+    if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
+    if (cl) cl.style.visibility = '';
+  }
   function fillUpdate() {
-    var st = $('.qh-update-status'), nt = $('.qh-update-notes'), now = $('.qh-update-now'), em = $('.qh-update-emoji');
+    resetUpdateUI();
+    var st = $('.qh-update-status'), now = $('.qh-update-now'), em = $('.qh-update-emoji');
     if (pendingUpdate) {
       if (em) em.textContent = pendingUpdate.emoji || LOCAL.emoji;
-      if (st) st.textContent = 'A new version is ready' + (pendingUpdate.emoji ? ' ' + pendingUpdate.emoji : '') + '.';
-      if (nt) nt.textContent = pendingUpdate.notes || '';
+      if (st) st.textContent = 'A new version is ready.';
       if (now) now.style.display = '';
     } else {
       if (em) em.textContent = LOCAL.emoji;
       if (st) st.textContent = 'You’re up to date.';
-      if (nt) nt.textContent = '';
       if (now) now.style.display = 'none';
     }
   }
-  function applyUpdate() { if (window.confirm('Update Quill Haven now? The screen will restart to apply it.')) helper('/apply-update'); }
+  // Tapping Update shows a clear "updating… will restart" bar (no silent gap), then
+  // fires the helper. If the helper can't be reached the restart never comes, so we
+  // say so instead of spinning forever.
+  function applyUpdate() {
+    var now = $('.qh-update-now'), st = $('.qh-update-status'), prog = $('.qh-update-progress'), fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (now) now.style.display = 'none';
+    if (cl) cl.style.visibility = 'hidden';            // can't cancel mid-update
+    if (st) st.textContent = 'Updating — the screen will restart in a moment.';
+    if (wait) { wait.classList.remove('err'); wait.textContent = 'Please don’t touch anything.'; }
+    if (prog) prog.style.display = '';
+    var pct = 6; if (fill) fill.style.width = pct + '%';
+    if (_updTimer) clearInterval(_updTimer);
+    _updTimer = setInterval(function () { pct += (93 - pct) * 0.07; if (fill) fill.style.width = Math.min(93, pct).toFixed(0) + '%'; }, 320);
+    helper('/apply-update', function (res) { if (!res || !res.ok) updateFailed('Couldn’t reach the updater. Open Settings and tap Restart, then try again.'); });
+    if (_updFallback) clearTimeout(_updFallback);
+    _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Open Settings and tap Restart to finish.'); }, 35000);
+  }
+  function updateFailed(msg) {
+    if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
+    if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
+    var fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (fill) fill.style.width = '100%';
+    if (wait) { wait.classList.add('err'); wait.textContent = msg; }
+    if (cl) cl.style.visibility = '';
+  }
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
@@ -334,7 +368,6 @@
   // ── Wire ──
   function wire() {
     $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { helper('/wifi-settings'); });
-    $('.qh-bar [data-act="power"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="settings"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="version"]').addEventListener('click', function () { openOverlay('update'); });
     $('.qh-dock-btn').addEventListener('click', function (e) { e.stopPropagation(); togglePanel(); });

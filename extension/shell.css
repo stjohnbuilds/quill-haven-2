@@ -141,5 +141,9 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-update-emoji { font-size: 46px; line-height: 1; margin: 8px 0 12px; }
 .qh-update-version { font-size: 14px; font-weight: 600; color: var(--text-strong); }
 .qh-update-status { font-size: 13.5px; color: var(--text-soft); margin-top: 8px; }
-.qh-update-notes { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.55; }
 .qh-update-now { margin-top: 20px; align-self: stretch; }
+.qh-update-progress { align-self: stretch; margin-top: 22px; }
+.qh-update-bar { height: 8px; border-radius: 6px; background: var(--card-border); overflow: hidden; }
+.qh-update-bar-fill { height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); transition: width 0.35s ease; }
+.qh-update-wait { font-size: 12.5px; color: var(--text-soft); margin-top: 12px; line-height: 1.5; }
+.qh-update-wait.err { color: #e06a6a; }
