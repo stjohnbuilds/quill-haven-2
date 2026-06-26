@@ -1,6 +1,6 @@
 {
-  "version": "2.1.4",
-  "emoji": "🍵",
+  "version": "2.1.5",
+  "emoji": "📚",
   "date": "2026-06-26",
-  "notes": "Ships with Google Docs only now — add your own apps yourself. And the top bar is movable: grab the little grip handle and drag it anywhere; it stays where you put it and can't slide off-screen."
+  "notes": "Settings tidy-up: removed Google account and the Storage readout, themes renamed Light / Wood / Grey / Dark, the Tint slider now only shows on Light & Dark, Power is three little icons in one row, and the panel is wider and roomier."
 }

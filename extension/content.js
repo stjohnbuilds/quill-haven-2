@@ -5,7 +5,7 @@
    draws, inside one shadow root so no page can touch it:
      • the top-right bar  (Wi-Fi, battery, settings, version emoji, clock)
      • the bottom-right apps button  (opens your apps + Home)
-     • the one settings popup  (Look / Apps / Account / Connection / Device / Power)
+     • the one settings popup  (Look / Apps / Connection / Device / Power)
      • the one screen dimmer  (brightness + night light)
 
    There is ONE of everything here — one clock, one battery reader, one theme
@@ -20,13 +20,14 @@
 
   // ── Constants ──
   var THEMES = ['purple', 'wood', 'slate', 'dark'];
+  var THEME_LABELS = { purple: 'Light', wood: 'Wood', slate: 'Grey', dark: 'Dark' };
   var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var REGIONS = [['', 'Auto (device)'], ['Europe/London', 'London'], ['America/New_York', 'New York'], ['America/Los_Angeles', 'Los Angeles'], ['Australia/Sydney', 'Sydney']];
   var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.4', emoji: '🍵' };
+  var LOCAL = { version: '2.1.5', emoji: '📚' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -39,7 +40,10 @@
     battery: '<svg width="22" height="14" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="22" height="10" rx="2.5"/><rect class="qh-batt-fill" x="3.5" y="4.5" width="15" height="5" rx="1" fill="currentColor" stroke="none" opacity="0.65"/><rect x="23" y="5" width="3" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.4"/></svg><svg class="qh-batt-bolt" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="display:none;margin-left:-15px;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
     apps: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
     home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
-    grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>'
+    grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>',
+    sleep: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+    restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+    poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>'
   };
 
   var BUILTINS = (window.QH_BUILTINS || []).map(function (a) { return { id: a.id, name: a.name, url: a.url, c1: a.c1, c2: a.c2, icon: a.icon, builtin: true }; });
@@ -114,7 +118,7 @@
       '<div class="qh-head"><div class="qh-title">Settings</div><button class="qh-close" data-close="settings">&#x2715;</button></div>' +
       '<div class="qh-section">Look</div><div class="qh-group">' +
         '<div class="qh-row col"><div class="qh-label">Theme</div><div class="qh-theme-dots"></div></div>' +
-        '<div class="qh-row col qh-hue-row"><div class="qh-row-line"><div><div class="qh-label">Colour</div><div class="qh-sub">Tune the theme</div></div><div class="qh-hue-value">0</div></div><input type="range" min="0" max="360" class="qh-hue"></div>' +
+        '<div class="qh-row col qh-hue-row"><div class="qh-row-line"><div><div class="qh-label">Tint</div><div class="qh-sub">Shift the colour</div></div><div class="qh-hue-value">0</div></div><input type="range" min="0" max="360" class="qh-hue"></div>' +
         '<div class="qh-row col"><div class="qh-label">Brightness</div><input type="range" min="35" max="100" class="qh-brightness"></div>' +
         '<div class="qh-row"><div class="qh-label">Night Light</div><label class="qh-switch"><input type="checkbox" class="qh-night"><span class="qh-slider"></span></label></div>' +
       '</div>' +
@@ -127,21 +131,19 @@
         '</div>' +
         '<div class="qh-mini qh-manage-label" style="display:none;">Your sites</div><div class="qh-manage-list"></div>' +
       '</div>' +
-      '<div class="qh-section">Account</div><div class="qh-group">' +
-        '<button class="qh-row click" data-act="google-account"><div><div class="qh-label">Google Account</div><div class="qh-sub">Sign in for Docs</div></div><div class="qh-row-arrow">&#x203A;</div></button>' +
-      '</div>' +
       '<div class="qh-section">Connection</div><div class="qh-group">' +
         '<button class="qh-row click" data-act="wifi"><div class="qh-label">Wi-Fi</div><div class="qh-sub qh-wifi-sub">Connected</div></button>' +
         '<div class="qh-row"><div class="qh-label">Region</div><select class="qh-region"></select></div>' +
       '</div>' +
       '<div class="qh-section">Device</div><div class="qh-group">' +
-        '<div class="qh-row col"><div class="qh-row-line"><div><div class="qh-label">Storage</div><div class="qh-sub qh-storage-text">Checking...</div></div></div><div class="qh-storage-bar"><div class="qh-storage-fill"></div></div></div>' +
         '<button class="qh-row click" data-act="terminal"><div><div class="qh-label">Open terminal</div><div class="qh-sub">Support only</div></div><div class="qh-row-arrow">&#x203A;</div></button>' +
       '</div>' +
       '<div class="qh-section">Power</div><div class="qh-group">' +
-        '<button class="qh-row click" data-act="sleep"><div class="qh-label">Sleep</div></button>' +
-        '<button class="qh-row click" data-act="restart"><div class="qh-label">Restart</div></button>' +
-        '<button class="qh-row click danger" data-act="poweroff"><div class="qh-label">Power off</div></button>' +
+        '<div class="qh-power-row">' +
+          '<button class="qh-pwr click" data-act="sleep" title="Sleep">' + I.sleep + '<span>Sleep</span></button>' +
+          '<button class="qh-pwr click" data-act="restart" title="Restart">' + I.restart + '<span>Restart</span></button>' +
+          '<button class="qh-pwr click danger" data-act="poweroff" title="Power off">' + I.poweroff + '<span>Off</span></button>' +
+        '</div>' +
       '</div>' +
       '<div class="qh-foot">Quill Haven ' + esc(LOCAL.version) + ' ' + LOCAL.emoji + '</div>' +
     '</div></div>' +
@@ -174,6 +176,7 @@
     host.style.filter = hueOn ? 'hue-rotate(' + state.hue + 'deg)' : '';
     document.documentElement.classList.toggle('qh-hue-on', !!hueOn);
     document.documentElement.style.setProperty('--qh-hue', state.hue + 'deg');
+    var hr = $('.qh-hue-row'); if (hr) hr.style.display = (state.theme === 'purple' || state.theme === 'dark') ? '' : 'none';
     var f = $('.qh-screen-filter');
     var op = (100 - state.brightness) / 100 * 0.6;
     if (state.night) op = Math.max(op, 0.18);
@@ -231,7 +234,7 @@
     var wrap = $('.qh-theme-dots'); if (!wrap) return; wrap.innerHTML = '';
     THEMES.forEach(function (t) {
       var b = document.createElement('button');
-      b.className = 'qh-dot ' + t + (t === state.theme ? ' active' : ''); b.title = t; b.innerHTML = '<span></span>';
+      b.className = 'qh-dot ' + t + (t === state.theme ? ' active' : ''); b.title = THEME_LABELS[t] || t; b.innerHTML = '<span></span>';
       b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); [].forEach.call($$('.qh-dot'), function (d) { d.classList.remove('active'); }); b.classList.add('active'); applyLook(); });
       wrap.appendChild(b);
     });
@@ -242,28 +245,6 @@
     var hue = $('.qh-hue'); if (hue) hue.value = state.hue;
     var hv = $('.qh-hue-value'); if (hv) hv.textContent = state.hue;
     var rg = $('.qh-region'); if (rg) rg.value = state.tz;
-  }
-
-  // ── Storage indicator ──
-  function fmtBytes(bytes) {
-    if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GB';
-    if (bytes >= 1048576) return (bytes / 1048576).toFixed(0) + ' MB';
-    return Math.max(1, Math.round(bytes / 1024)) + ' KB';
-  }
-  function updateStorage() {
-    var fill = $('.qh-storage-fill'), text = $('.qh-storage-text');
-    if (!fill || !text) return;
-    if (navigator.storage && navigator.storage.estimate) {
-      navigator.storage.estimate().then(function (est) {
-        var used = est.usage || 0, quota = est.quota || 0;
-        var pct = quota ? Math.min(100, Math.max(2, Math.round(used / quota * 100))) : 2;
-        fill.style.width = pct + '%';
-        text.textContent = quota ? fmtBytes(used) + ' used of ' + fmtBytes(quota) : fmtBytes(used) + ' used';
-      }).catch(function () { fill.style.width = '2%'; text.textContent = 'Plenty of room'; });
-    } else {
-      fill.style.width = '2%';
-      text.textContent = 'Plenty of room';
-    }
   }
 
   // ── Version + updates ──
@@ -323,7 +304,7 @@
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
-    if (name === 'settings') { buildThemeDots(); buildSwatches(); renderManage(); syncControls(); updateStorage(); }
+    if (name === 'settings') { buildThemeDots(); buildSwatches(); renderManage(); syncControls(); }
     if (name === 'update') fillUpdate();
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
@@ -383,11 +364,10 @@
     var hue = $('.qh-hue'); if (hue) hue.addEventListener('input', function () { state.hue = parseHue(hue.value); save({ 'qh-hue': state.hue }); applyLook(); syncControls(); });
     var rg = $('.qh-region'); if (rg) { REGIONS.forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; rg.appendChild(o); }); rg.addEventListener('change', function () { state.tz = rg.value; save({ 'qh-tz': rg.value }); tick(); }); }
 
-    [].forEach.call($$('.qh-row.click[data-act]'), function (rowEl) {
+    [].forEach.call($$('.click[data-act]'), function (rowEl) {
       var act = rowEl.getAttribute('data-act');
       rowEl.addEventListener('click', function () {
         if (act === 'wifi') helper('/wifi-settings');
-        else if (act === 'google-account') window.location.href = 'https://accounts.google.com';
         else if (act === 'terminal') { if (window.confirm('Open a support terminal? Type  exit  in it to come back to writing.')) helper('/terminal'); }
         else if (act === 'sleep') helper('/sleep');
         else if (act === 'restart') { if (window.confirm('Restart the laptop?')) helper('/reboot'); }
