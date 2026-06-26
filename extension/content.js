@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.7', emoji: '🎐' };
+  var LOCAL = { version: '2.1.8', emoji: '🌸' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -148,6 +148,7 @@
         '<div class="qh-row"><div class="qh-label">Night Light</div><label class="qh-switch"><input type="checkbox" class="qh-night"><span class="qh-slider"></span></label></div>' +
       '</div>' +
       '<div class="qh-section">Apps</div><div class="qh-group">' +
+        '<div class="qh-manage-list"></div>' +
         '<div class="qh-add-inline">' +
           '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
           '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
@@ -157,7 +158,6 @@
           '</div>' +
           '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
         '</div>' +
-        '<div class="qh-mini qh-manage-label">Your apps</div><div class="qh-manage-list"></div>' +
       '</div>' +
       '<div class="qh-section">Connection</div><div class="qh-group">' +
         '<button class="qh-row click" data-act="wifi"><div class="qh-label">Wi-Fi</div><div class="qh-sub qh-wifi-sub">Connected</div></button>' +
@@ -350,9 +350,9 @@
     var pct = 6; if (fill) fill.style.width = pct + '%';
     if (_updTimer) clearInterval(_updTimer);
     _updTimer = setInterval(function () { pct += (93 - pct) * 0.07; if (fill) fill.style.width = Math.min(93, pct).toFixed(0) + '%'; }, 320);
-    helper('/apply-update', function (res) { if (!res || !res.ok) updateFailed('Couldn’t reach the updater. Open Settings and tap Restart, then try again.'); });
+    helper('/apply-update', function (res) { if (!res || !res.ok) updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); });
     if (_updFallback) clearTimeout(_updFallback);
-    _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Open Settings and tap Restart to finish.'); }, 35000);
+    _updFallback = setTimeout(function () { updateFailed('This is taking longer than usual. Switch the laptop off and on, then tap Update again.'); }, 35000);
   }
   function updateFailed(msg) {
     if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }

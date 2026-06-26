@@ -1,6 +1,6 @@
 {
-  "version": "2.1.7",
-  "emoji": "🎐",
+  "version": "2.1.8",
+  "emoji": "🌸",
   "date": "2026-06-26",
-  "notes": "Better Add-a-website form: pick from 12 colours and 7 icons using two neat little dropdowns, and your chosen icon now shows on the app — in the dock and the apps list."
+  "notes": "Settings has proper containers now — each section sits in its own card like the old app, the Apps list shows first under a single title (no more ‘Apps / Your apps’), roomier rows, the jarring scrollbar is hidden, and the panel is a bit shorter. The updater error also gives the right advice now."
 }

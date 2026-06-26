@@ -75,15 +75,16 @@
 .qh-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.22); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 .qh-overlay.open { display: flex; animation: qh-fade 0.15s ease; }
 @keyframes qh-fade { from { opacity: 0; } to { opacity: 1; } }
-.qh-card { width: 100%; max-width: 520px; max-height: calc(100vh - 92px); display: flex; flex-direction: column; overflow-y: auto; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28); animation: qh-scale 0.16s ease; }
+.qh-card { width: 100%; max-width: 520px; max-height: calc(100vh - 120px); display: flex; flex-direction: column; overflow-y: auto; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28); animation: qh-scale 0.16s ease; }
+.qh-card::-webkit-scrollbar { width: 0; }
 @keyframes qh-scale { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .qh-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 8px; }
 .qh-title { font-size: 17px; font-weight: 600; color: var(--text-strong); }
 .qh-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 15px; padding: 4px 8px; border-radius: 7px; }
 .qh-close:hover { background: var(--row-hover); }
 .qh-section { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); padding: 10px 18px 6px; }
-.qh-group { margin: 0 14px; }
-.qh-row { width: 100%; text-align: left; background: none; border: none; font-family: inherit; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 6px; border-bottom: 1px solid var(--row-hover); cursor: default; }
+.qh-group { margin: 0 14px 10px; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: 12px; }
+.qh-row { width: 100%; text-align: left; background: none; border: none; font-family: inherit; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border-bottom: 1px solid var(--row-hover); cursor: default; }
 .qh-row:last-child { border-bottom: none; }
 .qh-row.click { cursor: pointer; border-radius: 8px; }
 .qh-row.click:hover { background: var(--row-hover); }
@@ -121,10 +122,9 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-mini-switch { flex: none; transform: scale(0.82); }
 
 /* ── Settings app management ── */
-.qh-add-inline { padding: 2px 0 13px; display: flex; flex-direction: column; border-bottom: 1px solid var(--row-hover); }
+.qh-add-inline { padding: 12px 13px 4px; display: flex; flex-direction: column; }
 .qh-input { font-family: inherit; font-size: 14px; color: var(--text-strong); background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 9px; padding: 10px 12px; margin-bottom: 10px; outline: none; }
 .qh-input:focus { border-color: var(--accent); }
-.qh-mini { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin: 6px 0 8px; }
 .qh-swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
 .qh-swatch span { display: block; width: 100%; height: 100%; border-radius: 7px; }
 .qh-swatch.active { border-color: var(--accent-strong); }
@@ -145,7 +145,7 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-btn-save { background: var(--accent); color: #fff; }
 .qh-btn-save:hover { opacity: 0.88; }
 .qh-manage-list { display: flex; flex-direction: column; }
-.qh-manage-row { display: flex; align-items: center; gap: 10px; padding: 8px 2px; border-bottom: 1px solid var(--row-hover); }
+.qh-manage-row { display: flex; align-items: center; gap: 10px; padding: 9px 13px; border-bottom: 1px solid var(--row-hover); }
 .qh-manage-row:last-child { border-bottom: none; }
 .qh-manage-dot { width: 22px; height: 22px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
 .qh-manage-name { flex: 1; font-size: 13px; color: var(--text-strong); }
