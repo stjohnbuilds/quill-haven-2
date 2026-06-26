@@ -1,6 +1,6 @@
 {
-  "version": "2.1.3",
-  "emoji": "✨",
+  "version": "2.1.4",
+  "emoji": "🍵",
   "date": "2026-06-26",
-  "notes": "Tidier top bar — the power button is gone (use Settings for restart). When you tap Update you now get a clear ‘Updating… the screen will restart’ bar that fills as it works, so you always see it happening. Update popup simplified."
+  "notes": "Ships with Google Docs only now — add your own apps yourself. And the top bar is movable: grab the little grip handle and drag it anywhere; it stays where you put it and can't slide off-screen."
 }

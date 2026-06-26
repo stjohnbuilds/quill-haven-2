@@ -36,6 +36,9 @@
   background: var(--bar-bg); border: 1px solid var(--bar-border); border-radius: 18px;
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 6px 20px rgba(0,0,0,0.10);
 }
+.qh-grip { display: inline-flex; align-items: center; color: var(--text-muted); opacity: 0.55; cursor: grab; padding: 0 1px; margin-right: 1px; touch-action: none; -webkit-user-select: none; user-select: none; }
+.qh-grip:hover { opacity: 0.9; }
+.qh-grip:active { cursor: grabbing; }
 .qh-icon { display: inline-flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px 6px; border-radius: 7px; transition: background 0.15s, color 0.15s; }
 .qh-icon:hover { background: var(--row-hover); color: var(--text-soft); }
 .qh-version { font-size: 14px; line-height: 1; position: relative; }

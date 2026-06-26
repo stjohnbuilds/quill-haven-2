@@ -26,7 +26,7 @@
   var SWATCHES = [['#f7cfe6', '#eeb1cf'], ['#d9c2f5', '#b083e0'], ['#dfeede', '#bcd9bc'], ['#c4d4f7', '#a0bcee'], ['#f7ddc6', '#eebfa0'], ['#c2e8e0', '#8fd6c9']];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.1.3', emoji: '✨' };
+  var LOCAL = { version: '2.1.4', emoji: '🍵' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -38,13 +38,14 @@
     gear: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
     battery: '<svg width="22" height="14" viewBox="0 0 28 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="22" height="10" rx="2.5"/><rect class="qh-batt-fill" x="3.5" y="4.5" width="15" height="5" rx="1" fill="currentColor" stroke="none" opacity="0.65"/><rect x="23" y="5" width="3" height="4" rx="1" fill="currentColor" stroke="none" opacity="0.4"/></svg><svg class="qh-batt-bolt" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="display:none;margin-left:-15px;"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
     apps: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
-    home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>'
+    home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
+    grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>'
   };
 
   var BUILTINS = (window.QH_BUILTINS || []).map(function (a) { return { id: a.id, name: a.name, url: a.url, c1: a.c1, c2: a.c2, icon: a.icon, builtin: true }; });
 
   // ── State (the ONE store: chrome.storage) ──
-  var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], homeUrl: '' };
+  var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], homeUrl: '', barPos: null };
   var pendingUpdate = null;
   var _updTimer = null, _updFallback = null;
   var pickedColor = SWATCHES[3];
@@ -52,7 +53,7 @@
 
   function loadState(cb) {
     try {
-      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-night', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-home-url'], function (v) {
+      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-night', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-home-url', 'qh-bar-pos'], function (v) {
         if (!chrome.runtime.lastError) {
           v = v || {};
           if (THEMES.indexOf(v['qh-theme']) >= 0) state.theme = v['qh-theme'];
@@ -62,6 +63,7 @@
           state.tz = v['qh-tz'] || '';
           if (Array.isArray(v['qh-user-apps'])) state.user = v['qh-user-apps'];
           state.homeUrl = v['qh-home-url'] || '';
+          if (v['qh-bar-pos'] && typeof v['qh-bar-pos'] === 'object') state.barPos = v['qh-bar-pos'];
         }
         cb();
       });
@@ -97,6 +99,7 @@
   ui.innerHTML =
     '<div class="qh-screen-filter"></div>' +
     '<div class="qh-bar">' +
+      '<span class="qh-grip" title="Drag to move the bar">' + I.grip + '</span>' +
       '<button class="qh-icon" data-act="wifi" title="Wi-Fi">' + I.wifi + '</button>' +
       '<button class="qh-icon" data-act="battery" title="Battery">' + I.battery + '</button>' +
       '<span class="qh-batt-pct"></span>' +
@@ -413,8 +416,46 @@
         if (changes['qh-hue']) { state.hue = parseHue(changes['qh-hue'].newValue); applyLook(); syncControls(); }
         if (changes['qh-tz']) { state.tz = changes['qh-tz'].newValue || ''; tick(); }
         if (changes['qh-home-url']) { state.homeUrl = changes['qh-home-url'].newValue || ''; }
+        if (changes['qh-bar-pos']) { state.barPos = changes['qh-bar-pos'].newValue || null; applyBarPos(); }
       });
     } catch (e) {}
+  }
+
+  // ── Movable bar — drag from the grip; clamp on-screen; save + restore (one store) ──
+  function clampN(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+  function applyBarPos() {
+    var bar = $('.qh-bar'); if (!bar) return;
+    var p = state.barPos;
+    if (!p || typeof p.x !== 'number' || typeof p.y !== 'number') return;
+    var w = bar.offsetWidth || 0, h = bar.offsetHeight || 0;
+    bar.style.left = clampN(p.x, 4, Math.max(4, window.innerWidth - w - 4)) + 'px';
+    bar.style.top = clampN(p.y, 4, Math.max(4, window.innerHeight - h - 4)) + 'px';
+    bar.style.right = 'auto'; bar.style.bottom = 'auto';
+  }
+  function setupBarDrag() {
+    var bar = $('.qh-bar'), grip = $('.qh-grip'); if (!bar || !grip) return;
+    var startX, startY, origX, origY, dragging = false;
+    grip.addEventListener('pointerdown', function (e) {
+      if (e.button && e.button !== 0) return;
+      e.preventDefault();
+      var r = bar.getBoundingClientRect();
+      origX = r.left; origY = r.top; startX = e.clientX; startY = e.clientY; dragging = true;
+      try { grip.setPointerCapture(e.pointerId); } catch (x) {}
+    });
+    grip.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var w = bar.offsetWidth, h = bar.offsetHeight;
+      bar.style.left = clampN(origX + (e.clientX - startX), 4, Math.max(4, window.innerWidth - w - 4)) + 'px';
+      bar.style.top = clampN(origY + (e.clientY - startY), 4, Math.max(4, window.innerHeight - h - 4)) + 'px';
+      bar.style.right = 'auto'; bar.style.bottom = 'auto';
+    });
+    function end() {
+      if (!dragging) return; dragging = false;
+      state.barPos = { x: parseFloat(bar.style.left), y: parseFloat(bar.style.top) };
+      save({ 'qh-bar-pos': state.barPos });
+    }
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
   }
 
   function start() {
@@ -424,6 +465,8 @@
       // On the home page, remember the way back for the Home button on other pages.
       if (isHome) { try { chrome.storage.local.set({ 'qh-home-url': location.href }); state.homeUrl = location.href; } catch (e) {} }
       applyLook();
+      applyBarPos(); setupBarDrag();
+      window.addEventListener('resize', applyBarPos);
       renderApps();
       publishApps();
       tick(); setInterval(tick, 10000);
