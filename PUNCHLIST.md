@@ -11,9 +11,10 @@ work, settings opens). These are the polish items found while using it.
       white screen with the app name + "a quiet place to write" in a basic font,
       jammed top-left. Should fade in styled, or show nothing, until it's ready.
       → Inline the critical backdrop CSS / fix the unstyled flash + font load.
-- [ ] **Settings is missing a lot.** The cog opens but the panel is thin. Add the
-      rest: Google account / Drive sign-in, Open terminal (support), the in-overlay
-      Wi-Fi picker (not the ugly native window), storage space. (Spec §3.)
+- [ ] **Settings still needs the heavier device pieces.** Added Apps management,
+      Google Account, Open terminal, storage, and colour tuning. Remaining:
+      in-overlay Wi-Fi picker (not the ugly native window). Drive sign-in is
+      deferred for this version unless Marie asks for backup now. (Spec §3.)
 - [ ] **Battery life looks poor** (showed 45% → 1h46m ≈ ~4h total). Two parts:
       (a) the just-booted estimate is often wrong — re-check after it settles;
       (b) real power saving — turn on screen-off-when-idle (the helper has it),

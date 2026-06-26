@@ -1,6 +1,6 @@
 {
-  "version": "2.1.1",
-  "emoji": "🍃",
-  "date": "2026-06-25",
-  "notes": "Polish: no more flash of raw shell/code when switching apps or booting, the battery percent now shows in the bar, and a softer (less pink) night light."
+  "version": "2.1.2",
+  "emoji": "🌙",
+  "date": "2026-06-26",
+  "notes": "Settings grew up: add & manage your own sites, Google account, storage and a support terminal now live in Settings, plus a colour slider. Safety: the terminal asks first, Google account opens in the same window, and the ‘go home’ rescue button works again."
 }

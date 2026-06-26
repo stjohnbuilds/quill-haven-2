@@ -34,6 +34,7 @@ html, body {
   background: var(--bg);
   overflow: hidden;
 }
+html.qh-hue-on body { filter: hue-rotate(var(--qh-hue)); }
 
 .orb { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
 .orb-1 { width: 420px; height: 420px; background: var(--orb1); top: -120px; right: -60px; animation: drift1 20s ease-in-out infinite; }

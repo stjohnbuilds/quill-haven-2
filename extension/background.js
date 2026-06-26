@@ -2,7 +2,7 @@
    Quill Haven 2.0 — background worker.
 
    Two jobs:
-   1. Relay the shell's power / Wi-Fi buttons to the local helper (127.0.0.1:8137).
+   1. Relay the shell's power / Wi-Fi / support buttons to the local helper (127.0.0.1:8137).
       A web page can't reliably reach the helper itself, so the shell messages
       here and this worker (which has host permission) makes the call.
    2. LOCKDOWN — keep the laptop on your approved writing apps. Any top-level
@@ -21,7 +21,7 @@ var HELPER = 'http://127.0.0.1:8137';
 /* ── 1. Relay helper actions ── */
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'helper' || typeof msg.path !== 'string') return;
-  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/come-home', '/apply-update'];
+  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update'];
   if (ALLOWED.indexOf(msg.path) < 0) { sendResponse({ ok: false, reason: 'not-allowed' }); return; }
   fetch(HELPER + msg.path, { method: 'POST' })
     .then(function () { sendResponse({ ok: true }); })
@@ -93,7 +93,7 @@ function isAllowed(host) {
 
 function sendHome(tabId) {
   if (state.homeUrl) { try { chrome.tabs.update(tabId, { url: state.homeUrl }); return; } catch (e) {} }
-  try { fetch(HELPER + '/come-home', { method: 'POST' }).catch(function () {}); } catch (e) {}
+  try { fetch(HELPER + '/go-home', { method: 'POST' }).catch(function () {}); } catch (e) {}
 }
 
 chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
