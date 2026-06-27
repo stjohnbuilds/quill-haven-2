@@ -1,6 +1,6 @@
 {
-  "version": "2.3.8",
-  "emoji": "🍀",
+  "version": "2.3.9",
+  "emoji": "🌟",
   "date": "2026-06-27",
-  "notes": "The real fix: the helper now accepts the browser's own messages. It was only accepting ones tagged with the home-screen address, but the Update / Terminal / Screen buttons send from the extension — so the helper ignored them all. Now they get through, so the buttons (and hands-free updates) work."
+  "notes": "A tiny version (no code changes) so you can tap Update and check whether the browser now reaches the helper. If the star appears by itself, hands-free updates work. If it shows an error in brackets, that word tells us what's still blocking."
 }
