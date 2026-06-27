@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.7', emoji: '🌷' };
+  var LOCAL = { version: '2.3.8', emoji: '🍀' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -95,7 +95,7 @@
     } catch (e) { cb(); }
   }
   function save(o) { try { chrome.storage.local.set(o); } catch (e) {} }
-  function helper(path, cb) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function (res) { void chrome.runtime.lastError; if (cb) cb(res); }); } catch (e) { if (cb) cb(null); } }
+  function helper(path, cb) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function (res) { if (cb) cb(res || { ok: false, reason: (chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no-sw' }); }); } catch (e) { if (cb) cb({ ok: false, reason: String(e) }); } }
 
   function allApps() { return BUILTINS.concat(state.user); }
   // An app can be hidden from the dock (toggle in Settings) without deleting it. Hidden
@@ -410,7 +410,7 @@
     if (st) st.textContent = 'Installing your update… the screen will go dark and come back on its own. Don’t turn it off.';
     save({ 'qh-updating-to': target });
     helper('/apply-update', function (res) {
-      if (!res || !res.ok) { updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); return; }
+      if (!res || !res.ok) { updateFailed('Couldn’t reach the updater (' + ((res && res.reason) || 'no-sw') + '). Switch the laptop off and on, then tap Update again.'); return; }
       _applySent = true;                               // helper has it; an install may be underway — never re-send
     });
     // Safety net if no restart comes. If the helper already accepted it (_applySent),

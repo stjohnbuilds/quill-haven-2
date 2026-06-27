@@ -26,9 +26,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'helper' || typeof msg.path !== 'string') return;
   var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update', '/screen-off'];
   if (ALLOWED.indexOf(msg.path) < 0) { sendResponse({ ok: false, reason: 'not-allowed' }); return; }
-  fetch(HELPER + msg.path, { method: 'POST' })
-    .then(function () { sendResponse({ ok: true }); })
-    .catch(function () { sendResponse({ ok: false, reason: 'no-helper' }); });
+  fetch(HELPER + msg.path, { method: 'POST', cache: 'no-store', credentials: 'omit' })
+    .then(function (r) { sendResponse({ ok: r.ok, reason: r.ok ? 'ok' : 'http-' + r.status }); })
+    .catch(function (e) { sendResponse({ ok: false, reason: String((e && e.message) || e) }); });
   return true; // async reply
 });
 
