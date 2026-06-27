@@ -1,6 +1,6 @@
 {
-  "version": "2.3.11",
-  "emoji": "🌿",
+  "version": "2.3.12",
+  "emoji": "🌼",
   "date": "2026-06-27",
-  "notes": "Lighter: Night light removed (and the colour filter it left running, which adds warmth), the 'updating' popup text is now readable on the dark theme, and some dead code is gone. The fuller settings rearrange comes next."
+  "notes": "New settings panel: one Device area (theme + name, tint, Wi-Fi/Terminal buttons, brightness, screen-sleep + region dropdowns), one Apps area (each app has edit + bin + a show/hide toggle, and Add app is a button that opens a pop-up). Cleaner and easier."
 }

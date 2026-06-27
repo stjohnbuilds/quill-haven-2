@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.11', emoji: '🌿' };
+  var LOCAL = { version: '2.3.12', emoji: '🌼' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -58,7 +58,10 @@
     sleep: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
     screenoff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
-    poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>'
+    poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>',
+    terminal: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 9l3 3-3 3M13 15h4"/></svg>',
+    edit: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>'
   };
 
   var BUILTINS = (window.QH_BUILTINS || []).map(function (a) { return { id: a.id, name: a.name, url: a.url, c1: a.c1, c2: a.c2, icon: a.icon, builtin: true }; });
@@ -72,6 +75,7 @@
   var _updFallback = null, _updating = false, _applySent = false;
   var pickedColor = SWATCHES[1];
   var pickedIcon = null;
+  var editingId = null;   // when set, the add/edit popup is renaming this user app instead of adding a new one
   var isHome = document.documentElement.hasAttribute('data-qh-home');
 
   function loadState(cb) {
@@ -153,30 +157,22 @@
     // settings popup
     '<div class="qh-overlay" data-ov="settings"><div class="qh-card">' +
       '<div class="qh-head"><div class="qh-title">Settings</div><button class="qh-close" data-close="settings">&#x2715;</button></div>' +
-      '<div class="qh-section">Look</div><div class="qh-group">' +
-        '<div class="qh-row col"><div class="qh-label">Theme</div><div class="qh-theme-dots"></div></div>' +
+      '<div class="qh-section">Device</div><div class="qh-group">' +
+        '<div class="qh-row col"><div class="qh-row-line"><div class="qh-label">Theme</div><div class="qh-theme-name"></div></div><div class="qh-theme-dots"></div></div>' +
         '<div class="qh-row col qh-hue-row"><div class="qh-row-line"><div><div class="qh-label">Tint</div><div class="qh-sub">Shift the colour</div></div><div class="qh-hue-value">0</div></div><input type="range" min="0" max="360" class="qh-hue"></div>' +
+        '<div class="qh-row col"><div class="qh-two-btns">' +
+          '<button class="qh-pwr click qh-wifi-btn" data-act="wifi" title="Wi-Fi">' + I.wifi + '<span>Wi-Fi</span></button>' +
+          '<button class="qh-pwr click" data-act="terminal" title="Open terminal">' + I.terminal + '<span>Terminal</span></button>' +
+        '</div></div>' +
         '<div class="qh-row col"><div class="qh-label">Brightness</div><input type="range" min="35" max="100" class="qh-brightness"></div>' +
-        '<div class="qh-row col"><div class="qh-row-line"><div><div class="qh-label">Screen sleep</div><div class="qh-sub">Turn the screen off when idle</div></div><div class="qh-sleep-value">5 min</div></div><input type="range" min="0" max="4" step="1" class="qh-sleep"></div>' +
+        '<div class="qh-row col"><div class="qh-two">' +
+          '<div class="qh-two-field"><div class="qh-label">Screen sleep</div><select class="qh-sleep"></select></div>' +
+          '<div class="qh-two-field"><div class="qh-label">Region</div><select class="qh-region"></select></div>' +
+        '</div></div>' +
       '</div>' +
       '<div class="qh-section">Apps</div><div class="qh-group">' +
         '<div class="qh-manage-list"></div>' +
-        '<div class="qh-add-inline">' +
-          '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
-          '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
-          '<div class="qh-pickers">' +
-            '<div class="qh-pick" data-pick="colour"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
-            '<div class="qh-pick" data-pick="icon"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
-          '</div>' +
-          '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="qh-section">Connection</div><div class="qh-group">' +
-        '<button class="qh-row click" data-act="wifi"><div class="qh-label">Wi-Fi</div><div class="qh-sub qh-wifi-sub">Connected</div></button>' +
-        '<div class="qh-row"><div class="qh-label">Region</div><select class="qh-region"></select></div>' +
-      '</div>' +
-      '<div class="qh-section">Device</div><div class="qh-group">' +
-        '<button class="qh-row click" data-act="terminal"><div><div class="qh-label">Open terminal</div><div class="qh-sub">Support only</div></div><div class="qh-row-arrow">&#x203A;</div></button>' +
+        '<div class="qh-add-row"><button class="qh-btn-save qh-add-open">Add app</button></div>' +
       '</div>' +
       '<div class="qh-section">Power</div><div class="qh-group">' +
         '<div class="qh-power-row">' +
@@ -187,6 +183,19 @@
         '</div>' +
       '</div>' +
       '<div class="qh-foot">Quill Haven ' + esc(LOCAL.version) + ' ' + LOCAL.emoji + '</div>' +
+    '</div></div>' +
+    // add / edit app popup
+    '<div class="qh-overlay" data-ov="addapp"><div class="qh-card qh-card-sm">' +
+      '<div class="qh-head"><div class="qh-title qh-add-title">Add app</div><button class="qh-close" data-close="addapp">&#x2715;</button></div>' +
+      '<div class="qh-add-inline">' +
+        '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
+        '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
+        '<div class="qh-pickers">' +
+          '<div class="qh-pick" data-pick="colour"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
+          '<div class="qh-pick" data-pick="icon"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
+        '</div>' +
+        '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
+      '</div>' +
     '</div></div>' +
     // version / update popup
     '<div class="qh-overlay" data-ov="update"><div class="qh-card">' +
@@ -280,42 +289,75 @@
       return '<div class="qh-manage-row">' +
         '<span class="qh-manage-dot" style="background:' + gradOf(a) + '">' + (a.icon || '') + '</span>' +
         '<span class="qh-manage-name">' + esc(a.name) + '</span>' +
+        (a.builtin ? '' :
+          '<button class="qh-manage-act" data-edit="' + esc(a.id) + '" title="Edit">' + I.edit + '</button>' +
+          '<button class="qh-manage-act qh-manage-del" data-mx="' + esc(a.id) + '" title="Remove">' + I.trash + '</button>') +
         '<label class="qh-switch qh-mini-switch" title="Show in dock"><input type="checkbox" data-tog="' + esc(a.id) + '"' + (on ? ' checked' : '') + '><span class="qh-slider"></span></label>' +
-        (a.builtin ? '' : '<button class="qh-manage-x" data-mx="' + esc(a.id) + '">Remove</button>') +
       '</div>';
     }).join('');
     [].forEach.call(list.querySelectorAll('[data-tog]'), function (t) { t.addEventListener('change', function () { toggleHidden(t.getAttribute('data-tog')); }); });
     [].forEach.call(list.querySelectorAll('[data-mx]'), function (x) { x.addEventListener('click', function () { removeApp(x.getAttribute('data-mx')); }); });
+    [].forEach.call(list.querySelectorAll('[data-edit]'), function (e) { e.addEventListener('click', function () { openEdit(e.getAttribute('data-edit')); }); });
+  }
+  // Open the add/edit popup blank (for a new app) or pre-filled (when editing id).
+  function openAdd() { editingId = null; fillAddForm(null); openOverlay('addapp'); }
+  function openEdit(id) {
+    var a = state.user.filter(function (x) { return x.id === id; })[0];
+    if (!a) return;
+    editingId = id; fillAddForm(a); openOverlay('addapp');
+  }
+  function fillAddForm(a) {
+    var t = $('.qh-add-title'); if (t) t.textContent = a ? 'Edit app' : 'Add app';
+    var sv = $('.qh-add-save'); if (sv) sv.textContent = a ? 'Save' : 'Add app';
+    var nm = $('.qh-add-name'), ur = $('.qh-add-url');
+    if (nm) nm.value = a ? a.name : '';
+    if (ur) ur.value = a ? a.url : '';
+    // match the picker state to this app (or reset for a new one)
+    pickedColor = (a && a.c1) ? [a.c1, a.c2 || a.c1] : SWATCHES[1];
+    pickedIcon = (a && a.icon) ? a.icon : null;
+    buildSwatches(); buildIcons(); updatePickFaces(); closePicks();
   }
   function saveAdd() {
     var name = $('.qh-add-name').value.trim(); var url = normalizeUrl($('.qh-add-url').value);
     if (!name) { $('.qh-add-name').focus(); return; }
     if (!url) { $('.qh-add-url').focus(); return; }
-    var app = { id: 'u' + Date.now().toString(36), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
-    // app.icon is ALWAYS a string from the trusted ICONS list (never user text) — it is injected as raw SVG.
-    if (pickedIcon) app.icon = pickedIcon;
-    state.user = state.user.concat([app]);
+    if (editingId) {
+      // Rename/recolour an existing app, keeping its id (so its hidden state stays put).
+      state.user = state.user.map(function (a) {
+        if (a.id !== editingId) return a;
+        var u = { id: a.id, name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
+        if (pickedIcon) u.icon = pickedIcon;   // icon is ALWAYS a trusted ICONS string, never user text
+        return u;
+      });
+    } else {
+      var app = { id: 'u' + Date.now().toString(36), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
+      // app.icon is ALWAYS a string from the trusted ICONS list (never user text) — it is injected as raw SVG.
+      if (pickedIcon) app.icon = pickedIcon;
+      state.user = state.user.concat([app]);
+    }
     save({ 'qh-user-apps': state.user }); publishApps(); renderApps(); renderManage();
-    $('.qh-add-name').value = ''; $('.qh-add-url').value = '';
-    pickedIcon = null; updatePickFaces();
+    editingId = null;
+    closeOverlay('addapp');
   }
 
   // ── Settings popup ──
+  function setThemeName() { var n = $('.qh-theme-name'); if (n) n.textContent = THEME_LABELS[state.theme] || state.theme; }
   function buildThemeDots() {
     var wrap = $('.qh-theme-dots'); if (!wrap) return; wrap.innerHTML = '';
     THEMES.forEach(function (t) {
       var b = document.createElement('button');
       b.className = 'qh-dot ' + t + (t === state.theme ? ' active' : ''); b.title = THEME_LABELS[t] || t; b.innerHTML = '<span></span>';
-      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); [].forEach.call($$('.qh-dot'), function (d) { d.classList.remove('active'); }); b.classList.add('active'); applyLook(); });
+      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); [].forEach.call($$('.qh-dot'), function (d) { d.classList.remove('active'); }); b.classList.add('active'); setThemeName(); applyLook(); });
       wrap.appendChild(b);
     });
+    setThemeName();
   }
   function syncControls() {
     var br = $('.qh-brightness'); if (br) br.value = state.brightness;
     var hue = $('.qh-hue'); if (hue) hue.value = state.hue;
     var hv = $('.qh-hue-value'); if (hv) hv.textContent = state.hue;
     var rg = $('.qh-region'); if (rg) rg.value = state.tz;
-    var sl = $('.qh-sleep'); if (sl) { var si = SLEEP_SECS.indexOf(state.screenIdle); if (si < 0) si = 4; sl.value = si; var sv = $('.qh-sleep-value'); if (sv) sv.textContent = SLEEP_LABELS[si]; }
+    var sl = $('.qh-sleep'); if (sl) { var si = SLEEP_SECS.indexOf(state.screenIdle); if (si < 0) si = 4; sl.value = String(si); }
   }
 
   // ── Version + updates ──
@@ -507,7 +549,7 @@
   function syncWifi() {
     var on = navigator.onLine !== false;
     var w = $('.qh-bar [data-act="wifi"]'); if (w) { w.style.opacity = on ? '' : '0.35'; w.title = on ? 'Wi-Fi — connected' : 'Offline'; }
-    var sub = $('.qh-wifi-sub'); if (sub) sub.textContent = on ? 'Connected' : 'Offline';
+    var btn = $('.qh-wifi-btn'); if (btn) { btn.classList.toggle('connected', on); btn.title = on ? 'Wi-Fi — connected' : 'Wi-Fi — offline'; }
   }
 
   // ── Wire ──
@@ -522,7 +564,7 @@
 
     var br = $('.qh-brightness'); if (br) br.addEventListener('input', function () { state.brightness = parseInt(br.value, 10) || 100; save({ 'qh-brightness': state.brightness }); applyLook(); });
     var hue = $('.qh-hue'); if (hue) hue.addEventListener('input', function () { state.hue = parseHue(hue.value); save({ 'qh-hue': state.hue }); applyLook(); syncControls(); });
-    var sl = $('.qh-sleep'); if (sl) sl.addEventListener('input', function () { var i = parseInt(sl.value, 10) || 0; state.screenIdle = SLEEP_SECS[i]; var sv = $('.qh-sleep-value'); if (sv) sv.textContent = SLEEP_LABELS[i]; save({ 'qh-screen-idle': state.screenIdle }); });
+    var sl = $('.qh-sleep'); if (sl) { SLEEP_LABELS.forEach(function (lab, i) { var o = document.createElement('option'); o.value = String(i); o.textContent = lab; sl.appendChild(o); }); sl.addEventListener('change', function () { var i = parseInt(sl.value, 10) || 0; state.screenIdle = SLEEP_SECS[i]; save({ 'qh-screen-idle': state.screenIdle }); }); }
     var rg = $('.qh-region'); if (rg) { REGIONS.forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; rg.appendChild(o); }); rg.addEventListener('change', function () { state.tz = rg.value; save({ 'qh-tz': rg.value }); tick(); }); }
 
     [].forEach.call($$('.click[data-act]'), function (rowEl) {
@@ -537,6 +579,7 @@
       });
     });
 
+    $('.qh-add-open').addEventListener('click', openAdd);
     $('.qh-add-save').addEventListener('click', saveAdd);
     $('.qh-add-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
