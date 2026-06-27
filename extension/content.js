@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.12', emoji: '🌼' };
+  var LOCAL = { version: '2.3.13', emoji: '🌹' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -297,15 +297,10 @@
     }).join('');
     [].forEach.call(list.querySelectorAll('[data-tog]'), function (t) { t.addEventListener('change', function () { toggleHidden(t.getAttribute('data-tog')); }); });
     [].forEach.call(list.querySelectorAll('[data-mx]'), function (x) { x.addEventListener('click', function () { removeApp(x.getAttribute('data-mx')); }); });
-    [].forEach.call(list.querySelectorAll('[data-edit]'), function (e) { e.addEventListener('click', function () { openEdit(e.getAttribute('data-edit')); }); });
+    [].forEach.call(list.querySelectorAll('[data-edit]'), function (e) { e.addEventListener('click', function () { var id = e.getAttribute('data-edit'); openAddapp(state.user.filter(function (x) { return x.id === id; })[0]); }); });
   }
-  // Open the add/edit popup blank (for a new app) or pre-filled (when editing id).
-  function openAdd() { editingId = null; fillAddForm(null); openOverlay('addapp'); }
-  function openEdit(id) {
-    var a = state.user.filter(function (x) { return x.id === id; })[0];
-    if (!a) return;
-    editingId = id; fillAddForm(a); openOverlay('addapp');
-  }
+  // Open the add/edit popup: pass an app to rename/recolour it, or null to add a new one.
+  function openAddapp(a) { editingId = a ? a.id : null; fillAddForm(a || null); openOverlay('addapp'); }
   function fillAddForm(a) {
     var t = $('.qh-add-title'); if (t) t.textContent = a ? 'Edit app' : 'Add app';
     var sv = $('.qh-add-save'); if (sv) sv.textContent = a ? 'Save' : 'Add app';
@@ -321,23 +316,13 @@
     var name = $('.qh-add-name').value.trim(); var url = normalizeUrl($('.qh-add-url').value);
     if (!name) { $('.qh-add-name').focus(); return; }
     if (!url) { $('.qh-add-url').focus(); return; }
-    if (editingId) {
-      // Rename/recolour an existing app, keeping its id (so its hidden state stays put).
-      state.user = state.user.map(function (a) {
-        if (a.id !== editingId) return a;
-        var u = { id: a.id, name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
-        if (pickedIcon) u.icon = pickedIcon;   // icon is ALWAYS a trusted ICONS string, never user text
-        return u;
-      });
-    } else {
-      var app = { id: 'u' + Date.now().toString(36), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
-      // app.icon is ALWAYS a string from the trusted ICONS list (never user text) — it is injected as raw SVG.
-      if (pickedIcon) app.icon = pickedIcon;
-      state.user = state.user.concat([app]);
-    }
+    // One app shape for both add and rename; editing keeps the id so its hidden state stays put.
+    // app.icon is ALWAYS a trusted ICONS string (never user text) — it is injected as raw SVG.
+    var app = { id: editingId || ('u' + Date.now().toString(36)), name: name, url: url, c1: pickedColor[0], c2: pickedColor[1] };
+    if (pickedIcon) app.icon = pickedIcon;
+    state.user = editingId ? state.user.map(function (a) { return a.id === editingId ? app : a; }) : state.user.concat([app]);
     save({ 'qh-user-apps': state.user }); publishApps(); renderApps(); renderManage();
-    editingId = null;
-    closeOverlay('addapp');
+    editingId = null; closeOverlay('addapp');
   }
 
   // ── Settings popup ──
@@ -579,7 +564,7 @@
       });
     });
 
-    $('.qh-add-open').addEventListener('click', openAdd);
+    $('.qh-add-open').addEventListener('click', function () { openAddapp(null); });
     $('.qh-add-save').addEventListener('click', saveAdd);
     $('.qh-add-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
