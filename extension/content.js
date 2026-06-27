@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.13', emoji: '🌹' };
+  var LOCAL = { version: '2.3.14', emoji: '🐢' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -56,7 +56,6 @@
     home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
     grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>',
     sleep: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
-    screenoff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
     restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
     poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>',
     terminal: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 9l3 3-3 3M13 15h4"/></svg>',
@@ -176,7 +175,6 @@
       '</div>' +
       '<div class="qh-section">Power</div><div class="qh-group">' +
         '<div class="qh-power-row">' +
-          '<button class="qh-pwr click" data-act="screenoff" title="Turn the screen off (tap a key to wake)">' + I.screenoff + '<span>Screen</span></button>' +
           '<button class="qh-pwr click" data-act="sleep" title="Sleep">' + I.sleep + '<span>Sleep</span></button>' +
           '<button class="qh-pwr click" data-act="restart" title="Restart">' + I.restart + '<span>Restart</span></button>' +
           '<button class="qh-pwr click danger" data-act="poweroff" title="Power off">' + I.poweroff + '<span>Off</span></button>' +
@@ -556,7 +554,6 @@
       var act = rowEl.getAttribute('data-act');
       rowEl.addEventListener('click', function () {
         if (act === 'wifi') helper('/wifi-settings');
-        else if (act === 'screenoff') helper('/screen-off');
         else if (act === 'terminal') { helper('/terminal'); }
         else if (act === 'sleep') helper('/sleep');
         else if (act === 'restart') { if (window.confirm('Restart the laptop?')) helper('/reboot'); }

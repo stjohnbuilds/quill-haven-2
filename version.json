@@ -1,6 +1,6 @@
 {
-  "version": "2.3.13",
-  "emoji": "🌹",
+  "version": "2.3.14",
+  "emoji": "🐢",
   "date": "2026-06-27",
-  "notes": "Same new settings panel, leaner code — merged two near-identical functions and the duplicated save logic (no change you can see; add + edit still work)."
+  "notes": "Removed the manual 'Screen' button from Power (the screen now turns itself off when idle, so the button wasn't needed) plus its leftover icon. The auto screen-off and the screen-sleep timer are untouched."
 }
