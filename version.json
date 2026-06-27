@@ -1,6 +1,6 @@
 {
-  "version": "2.3.6",
-  "emoji": "🐝",
-  "date": "2026-06-26",
-  "notes": "Rebuilt the updater so it stops feeling like a guess: a gentle 'working' pulse so it never looks frozen, it waits until the new files are actually published before installing (no more half-updates), and it tells you plainly when it's done. Open terminal launches straight away too."
+  "version": "2.3.7",
+  "emoji": "🌷",
+  "date": "2026-06-27",
+  "notes": "A tiny test version (no code changes) to check the Update button can reach the helper on its own. If you tapped Update from the bar and the tulip appeared by itself, hands-free updates work."
 }
