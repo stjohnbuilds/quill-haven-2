@@ -1,6 +1,6 @@
 {
-  "version": "2.3.4",
-  "emoji": "🐚",
+  "version": "2.3.5",
+  "emoji": "🌻",
   "date": "2026-06-26",
-  "notes": "Honest updater: the fake progress bar is gone (it now just says it's working and will restart itself), the update screen can no longer be cancelled by tapping beside it, and Check for updates always fetches fresh. Plus the Terminal fix."
+  "notes": "Open terminal now launches straight away. The old 'are you sure?' box was silently blocked in kiosk mode, so the button did nothing — now it just opens the terminal."
 }

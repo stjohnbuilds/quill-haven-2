@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.4', emoji: '🐚' };
+  var LOCAL = { version: '2.3.5', emoji: '🌻' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -455,7 +455,7 @@
       rowEl.addEventListener('click', function () {
         if (act === 'wifi') helper('/wifi-settings');
         else if (act === 'screenoff') helper('/screen-off');
-        else if (act === 'terminal') { if (window.confirm('Open a support terminal? Type  exit  in it to come back to writing.')) helper('/terminal'); }
+        else if (act === 'terminal') { helper('/terminal'); }
         else if (act === 'sleep') helper('/sleep');
         else if (act === 'restart') { if (window.confirm('Restart the laptop?')) helper('/reboot'); }
         else if (act === 'poweroff') { if (window.confirm('Power off the laptop?')) helper('/poweroff'); }
