@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.10', emoji: '🎈' };
+  var LOCAL = { version: '2.3.11', emoji: '🌿' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -64,24 +64,23 @@
   var BUILTINS = (window.QH_BUILTINS || []).map(function (a) { return { id: a.id, name: a.name, url: a.url, c1: a.c1, c2: a.c2, icon: a.icon, builtin: true }; });
 
   // ── State (the ONE store: chrome.storage) ──
-  var state = { theme: 'purple', brightness: 100, night: false, hue: 0, tz: '', user: [], hidden: [], homeUrl: '', barPos: null, screenIdle: 300 };
+  var state = { theme: 'purple', brightness: 100, hue: 0, tz: '', user: [], hidden: [], homeUrl: '', barPos: null, screenIdle: 300 };
   // Screen-sleep choices for the slider: index → seconds (0 = never) and its label.
   var SLEEP_SECS = [0, 30, 60, 120, 300];
   var SLEEP_LABELS = ['Off', '30 sec', '1 min', '2 min', '5 min'];
   var pendingUpdate = null;
-  var _updTimer = null, _updFallback = null, _updating = false, _applySent = false;
+  var _updFallback = null, _updating = false, _applySent = false;
   var pickedColor = SWATCHES[1];
   var pickedIcon = null;
   var isHome = document.documentElement.hasAttribute('data-qh-home');
 
   function loadState(cb) {
     try {
-      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-night', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-hidden-apps', 'qh-home-url', 'qh-bar-pos', 'qh-screen-idle'], function (v) {
+      chrome.storage.local.get(['qh-theme', 'qh-brightness', 'qh-hue', 'qh-tz', 'qh-user-apps', 'qh-hidden-apps', 'qh-home-url', 'qh-bar-pos', 'qh-screen-idle'], function (v) {
         if (!chrome.runtime.lastError) {
           v = v || {};
           if (THEMES.indexOf(v['qh-theme']) >= 0) state.theme = v['qh-theme'];
           if (v['qh-brightness']) state.brightness = parseInt(v['qh-brightness'], 10) || 100;
-          state.night = !!v['qh-night'];
           state.hue = parseHue(v['qh-hue']);
           state.tz = v['qh-tz'] || '';
           if (Array.isArray(v['qh-user-apps'])) state.user = v['qh-user-apps'];
@@ -158,7 +157,6 @@
         '<div class="qh-row col"><div class="qh-label">Theme</div><div class="qh-theme-dots"></div></div>' +
         '<div class="qh-row col qh-hue-row"><div class="qh-row-line"><div><div class="qh-label">Tint</div><div class="qh-sub">Shift the colour</div></div><div class="qh-hue-value">0</div></div><input type="range" min="0" max="360" class="qh-hue"></div>' +
         '<div class="qh-row col"><div class="qh-label">Brightness</div><input type="range" min="35" max="100" class="qh-brightness"></div>' +
-        '<div class="qh-row"><div class="qh-label">Night Light</div><label class="qh-switch"><input type="checkbox" class="qh-night"><span class="qh-slider"></span></label></div>' +
         '<div class="qh-row col"><div class="qh-row-line"><div><div class="qh-label">Screen sleep</div><div class="qh-sub">Turn the screen off when idle</div></div><div class="qh-sleep-value">5 min</div></div><input type="range" min="0" max="4" step="1" class="qh-sleep"></div>' +
       '</div>' +
       '<div class="qh-section">Apps</div><div class="qh-group">' +
@@ -220,8 +218,7 @@
     var hr = $('.qh-hue-row'); if (hr) hr.style.display = (state.theme === 'purple' || state.theme === 'dark') ? '' : 'none';
     var f = $('.qh-screen-filter');
     var op = (100 - state.brightness) / 100 * 0.6;
-    if (state.night) op = Math.max(op, 0.18);
-    if (f) { f.classList.toggle('night', state.night); f.style.opacity = String(op); }
+    if (f) f.style.opacity = String(op);
   }
 
   // ── Apps (dock panel: Home + app launch buttons) — ONE renderer ──
@@ -315,7 +312,6 @@
   }
   function syncControls() {
     var br = $('.qh-brightness'); if (br) br.value = state.brightness;
-    var nl = $('.qh-night'); if (nl) nl.checked = state.night;
     var hue = $('.qh-hue'); if (hue) hue.value = state.hue;
     var hv = $('.qh-hue-value'); if (hv) hv.textContent = state.hue;
     var rg = $('.qh-region'); if (rg) rg.value = state.tz;
@@ -343,7 +339,6 @@
     });
   }
   function resetUpdateUI() {
-    if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
     var wait = $('.qh-update-wait'), em = $('.qh-update-emoji'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
     if (em) em.classList.remove('qh-working');
@@ -526,7 +521,6 @@
     [].forEach.call($$('.qh-overlay'), function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) closeOverlay(ov.getAttribute('data-ov')); }); });
 
     var br = $('.qh-brightness'); if (br) br.addEventListener('input', function () { state.brightness = parseInt(br.value, 10) || 100; save({ 'qh-brightness': state.brightness }); applyLook(); });
-    var nl = $('.qh-night'); if (nl) nl.addEventListener('change', function () { state.night = nl.checked; save({ 'qh-night': nl.checked ? '1' : '' }); applyLook(); });
     var hue = $('.qh-hue'); if (hue) hue.addEventListener('input', function () { state.hue = parseHue(hue.value); save({ 'qh-hue': state.hue }); applyLook(); syncControls(); });
     var sl = $('.qh-sleep'); if (sl) sl.addEventListener('input', function () { var i = parseInt(sl.value, 10) || 0; state.screenIdle = SLEEP_SECS[i]; var sv = $('.qh-sleep-value'); if (sv) sv.textContent = SLEEP_LABELS[i]; save({ 'qh-screen-idle': state.screenIdle }); });
     var rg = $('.qh-region'); if (rg) { REGIONS.forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; rg.appendChild(o); }); rg.addEventListener('change', function () { state.tz = rg.value; save({ 'qh-tz': rg.value }); tick(); }); }
@@ -567,7 +561,6 @@
         if (changes['qh-hidden-apps']) { state.hidden = Array.isArray(changes['qh-hidden-apps'].newValue) ? changes['qh-hidden-apps'].newValue : []; renderApps(); renderManage(); }
         if (changes['qh-theme'] && THEMES.indexOf(changes['qh-theme'].newValue) >= 0) { state.theme = changes['qh-theme'].newValue; applyLook(); buildThemeDots(); }
         if (changes['qh-brightness']) { state.brightness = parseInt(changes['qh-brightness'].newValue, 10) || 100; applyLook(); }
-        if (changes['qh-night']) { state.night = !!changes['qh-night'].newValue; applyLook(); }
         if (changes['qh-hue']) { state.hue = parseHue(changes['qh-hue'].newValue); applyLook(); syncControls(); }
         if (changes['qh-tz']) { state.tz = changes['qh-tz'].newValue || ''; tick(); }
         if (changes['qh-home-url']) { state.homeUrl = changes['qh-home-url'].newValue || ''; }

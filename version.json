@@ -1,6 +1,6 @@
 {
-  "version": "2.3.10",
-  "emoji": "🎈",
+  "version": "2.3.11",
+  "emoji": "🌿",
   "date": "2026-06-27",
-  "notes": "The proof: tap Update with no typing. If the balloon appears by itself, the background fix worked and the Update button is hands-free from now on."
+  "notes": "Lighter: Night light removed (and the colour filter it left running, which adds warmth), the 'updating' popup text is now readable on the dark theme, and some dead code is gone. The fuller settings rearrange comes next."
 }
