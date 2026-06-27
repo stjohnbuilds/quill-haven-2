@@ -1,6 +1,6 @@
 {
-  "version": "2.3.9",
-  "emoji": "🌟",
+  "version": "2.3.10",
+  "emoji": "🎈",
   "date": "2026-06-27",
-  "notes": "A tiny version (no code changes) so you can tap Update and check whether the browser now reaches the helper. If the star appears by itself, hands-free updates work. If it shows an error in brackets, that word tells us what's still blocking."
+  "notes": "The proof: tap Update with no typing. If the balloon appears by itself, the background fix worked and the Update button is hands-free from now on."
 }
