@@ -37,8 +37,12 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.5', emoji: '🌻' };
+  var LOCAL = { version: '2.3.6', emoji: '🐝' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
+  // The delivery repo's copy of THIS file. Before telling the laptop to install, the
+  // browser confirms the new version is actually published here — so the laptop can
+  // never download a half-published update and restart into the old version.
+  var DELIVERY_CONTENT_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven/main/extension/content.js';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -65,7 +69,7 @@
   var SLEEP_SECS = [0, 30, 60, 120, 300];
   var SLEEP_LABELS = ['Off', '30 sec', '1 min', '2 min', '5 min'];
   var pendingUpdate = null;
-  var _updTimer = null, _updFallback = null, _updating = false;
+  var _updTimer = null, _updFallback = null, _updating = false, _applySent = false;
   var pickedColor = SWATCHES[1];
   var pickedIcon = null;
   var isHome = document.documentElement.hasAttribute('data-qh-home');
@@ -195,10 +199,7 @@
         '<div class="qh-update-status">You’re up to date.</div>' +
         '<button class="qh-btn-save qh-update-now" style="display:none;">Update now</button>' +
         '<button class="qh-update-check">Check for updates</button>' +
-        '<div class="qh-update-progress" style="display:none;">' +
-          '<div class="qh-update-bar"><div class="qh-update-bar-fill"></div></div>' +
-          '<div class="qh-update-wait"></div>' +
-        '</div>' +
+        '<div class="qh-update-wait"></div>' +
       '</div>' +
     '</div></div>';
 
@@ -331,6 +332,7 @@
   }
   // The "Check for updates" button: look right now, then show the result in the popup.
   function checkNow() {
+    if (_updating) return;                             // don't reset the popup while an update is mid-flight
     var st = $('.qh-update-status'), btn = $('.qh-update-check');
     if (st) st.textContent = 'Checking…';
     if (btn) btn.disabled = true;
@@ -343,10 +345,10 @@
   function resetUpdateUI() {
     if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
-    var prog = $('.qh-update-progress'), fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
-    if (prog) prog.style.display = 'none';
-    if (fill) fill.style.width = '0%';
+    var wait = $('.qh-update-wait'), em = $('.qh-update-emoji'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (em) em.classList.remove('qh-working');
     if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
+    if (chk) chk.style.display = '';
     if (cl) cl.style.visibility = '';
   }
   function fillUpdate() {
@@ -362,39 +364,118 @@
       if (now) now.style.display = 'none';
     }
   }
-  // Tapping Update shows a clear "updating… will restart" bar (no silent gap), then
-  // fires the helper. If the helper can't be reached the restart never comes, so we
-  // say so instead of spinning forever.
+  // Tapping Update: (1) the emoji breathes so it never looks frozen; (2) WAIT until
+  // the new files are actually published online, so the laptop can't pull a half-
+  // published update and restart into the old version; (3) only then tell the helper
+  // to install; (4) if the helper can't be reached or nothing ever publishes, say so
+  // plainly instead of spinning forever. No fake progress bar — every line here is true.
+  var PUBLISH_TRIES = 24;                              // ~24 × 5s ≈ 2 minutes of polling
   function applyUpdate() {
-    _updating = true;                                  // lock the popup shut until it's done
-    var now = $('.qh-update-now'), st = $('.qh-update-status'), prog = $('.qh-update-progress'), wait = $('.qh-update-wait'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (_updating) return;                             // already mid-update — ignore repeat taps
+    if (!pendingUpdate || !pendingUpdate.version) return;
+    _updating = true; _applySent = false;              // lock the popup shut until it's done
+    var now = $('.qh-update-now'), st = $('.qh-update-status'), em = $('.qh-update-emoji'),
+        wait = $('.qh-update-wait'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
     if (now) now.style.display = 'none';
     if (chk) chk.style.display = 'none';
     if (cl) cl.style.visibility = 'hidden';            // no X — can't cancel mid-update
-    if (prog) prog.style.display = 'none';             // NO fake bar — the restart is the only real signal
-    if (st) st.textContent = 'Updating now — please wait. The screen will go black and restart itself when it’s done. This takes a minute or two; don’t turn it off.';
+    if (em) em.classList.add('qh-working');            // breathing emoji = real sign of life
     if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
-    helper('/apply-update', function () {});
+    if (st) st.textContent = 'Getting your update ready…';
+    waitForPublish(String(pendingUpdate.version), 0);
+  }
+  // Poll the delivery copy of this file until it carries the new version number —
+  // proof GitHub has finished publishing, so the install below can't pull stale files.
+  function waitForPublish(target, n) {
+    if (!_updating) return;
+    fetch(DELIVERY_CONTENT_URL + '?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (txt) {
+        if (!_updating) return;
+        if (txt && txt.indexOf("version: '" + target + "'") >= 0) { doApply(target); return; }
+        if (n >= PUBLISH_TRIES) { updateFailed('Your update hasn’t finished publishing online yet. Wait a minute, then tap Update again.'); return; }
+        setTimeout(function () { waitForPublish(target, n + 1); }, 5000);
+      })
+      .catch(function () {
+        if (!_updating) return;
+        if (n >= PUBLISH_TRIES) { updateFailed('Couldn’t reach the internet to fetch your update. Check the wifi, then tap Update again.'); return; }
+        setTimeout(function () { waitForPublish(target, n + 1); }, 5000);
+      });
+  }
+  // Files confirmed live → tell the helper to install + restart. Remember the version
+  // we're heading to, so that after the restart we can confirm it really landed.
+  function doApply(target) {
+    if (!_updating) return;
+    var st = $('.qh-update-status');
+    if (st) st.textContent = 'Installing your update… the screen will go dark and come back on its own. Don’t turn it off.';
+    save({ 'qh-updating-to': target });
+    helper('/apply-update', function (res) {
+      if (!res || !res.ok) { updateFailed('Couldn’t reach the updater. Switch the laptop off and on, then tap Update again.'); return; }
+      _applySent = true;                               // helper has it; an install may be underway — never re-send
+    });
+    // Safety net if no restart comes. If the helper already accepted it (_applySent),
+    // we must NOT offer a retry (that could double-install) — keep the popup locked and
+    // just reassure; a power-cycle always finishes it. If it was never even accepted,
+    // release the lock so she can try again.
     if (_updFallback) clearTimeout(_updFallback);
-    _updFallback = setTimeout(function () { updateFailed('This is taking longer than a couple of minutes — your wifi may be slow, so keep waiting. If nothing happens after several minutes, switch the laptop off and on and tap Update again.'); }, 180000);
+    _updFallback = setTimeout(function () {
+      if (_applySent) {
+        var st2 = $('.qh-update-status'), wait = $('.qh-update-wait');
+        if (st2) st2.textContent = '';
+        if (wait) { wait.classList.remove('err'); wait.textContent = 'Still working… if the screen doesn’t go dark and come back in a few minutes, switch the laptop off and on — it’ll finish on its own.'; }
+      } else {
+        updateFailed('That took too long to start. Switch the laptop off and on, then tap Update again.');
+      }
+    }, 240000);
   }
   function updateFailed(msg) {
     _updating = false;                                 // let her close it to retry
+    try { chrome.storage.local.remove('qh-updating-to'); } catch (e) {}   // never leave a stale "updated" flag
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
-    var st = $('.qh-update-status'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    var st = $('.qh-update-status'), wait = $('.qh-update-wait'), em = $('.qh-update-emoji'),
+        now = $('.qh-update-now'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (em) em.classList.remove('qh-working');
     if (st) st.textContent = '';
     if (wait) { wait.classList.add('err'); wait.textContent = msg; }
+    if (now) now.style.display = '';                   // offer the retry
+    if (chk) chk.style.display = '';
     if (cl) cl.style.visibility = '';
+  }
+  // After an update restart, if we landed on exactly the version we set out for, tell
+  // her plainly it worked (the changed emoji is the proof; this names it). Cleared
+  // either way so it never nags, and never claims success on a version that didn't land.
+  function confirmUpdateLanded() {
+    try {
+      chrome.storage.local.get(['qh-updating-to'], function (v) {
+        if (chrome.runtime.lastError) return;
+        var t = v && v['qh-updating-to'];
+        if (!t) return;
+        var match = String(t) === LOCAL.version;
+        try { chrome.storage.local.remove('qh-updating-to'); } catch (e) {}   // clear first so two loads can't double-toast
+        if (match) showToast('Updated — you’re now on ' + LOCAL.emoji + ' version ' + LOCAL.version + '.');
+      });
+    } catch (e) {}
+  }
+  function showToast(msg) {
+    try {
+      var t = document.createElement('div');
+      t.className = 'qh-toast'; t.textContent = msg;
+      root.appendChild(t);
+      requestAnimationFrame(function () { t.classList.add('show'); });
+      setTimeout(function () { t.classList.remove('show'); setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 400); }, 5000);
+    } catch (e) {}
   }
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
     if (name === 'settings') { buildThemeDots(); buildSwatches(); buildIcons(); updatePickFaces(); renderManage(); syncControls(); }
-    if (name === 'update') fillUpdate();
+    if (name === 'update' && !_updating) fillUpdate();   // don't reset the popup while an update is mid-flight
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
   function closeOverlay(name) { if (name === 'update' && _updating) return; var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.remove('open'); }
-  function closeAll() { [].forEach.call($$('.qh-overlay'), function (o) { o.classList.remove('open'); }); closePanel(); }
+  // Escape / close-all must honour the same mid-update lock as closeOverlay, or it could
+  // close the update popup mid-install and leave the lock stuck on.
+  function closeAll() { [].forEach.call($$('.qh-overlay'), function (o) { if (o.getAttribute('data-ov') === 'update' && _updating) return; o.classList.remove('open'); }); closePanel(); }
 
   // ── Clock — ONE ──
   function tick() {
@@ -548,6 +629,7 @@
       initBattery(); syncWifi();
       window.addEventListener('online', syncWifi); window.addEventListener('offline', syncWifi);
       checkUpdate(); setInterval(checkUpdate, 30 * 60 * 1000);
+      confirmUpdateLanded();
       watchStorage();
     });
   }

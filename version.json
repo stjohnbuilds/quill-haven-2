@@ -1,6 +1,6 @@
 {
-  "version": "2.3.5",
-  "emoji": "🌻",
+  "version": "2.3.6",
+  "emoji": "🐝",
   "date": "2026-06-26",
-  "notes": "Open terminal now launches straight away. The old 'are you sure?' box was silently blocked in kiosk mode, so the button did nothing — now it just opens the terminal."
+  "notes": "Rebuilt the updater so it stops feeling like a guess: a gentle 'working' pulse so it never looks frozen, it waits until the new files are actually published before installing (no more half-updates), and it tells you plainly when it's done. Open terminal launches straight away too."
 }
