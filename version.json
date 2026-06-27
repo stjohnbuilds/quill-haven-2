@@ -1,6 +1,6 @@
 {
-  "version": "2.3.2",
-  "emoji": "🌈",
+  "version": "2.3.3",
+  "emoji": "🦋",
   "date": "2026-06-26",
-  "notes": "Updates are calmer now. The ‘taking longer than usual’ panic is gone — the app waits a few minutes for slow wifi and tells you to keep waiting instead of telling you to restart (which used to cancel the download)."
+  "notes": "Fixes the Terminal button (the helper now hands launched windows the screen info, so they actually appear), and reloads the home screen fresh so the QuillHaven script font and quill come back."
 }
