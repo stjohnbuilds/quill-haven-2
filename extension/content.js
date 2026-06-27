@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.3', emoji: '🦋' };
+  var LOCAL = { version: '2.3.4', emoji: '🐚' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
 
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }
@@ -65,7 +65,7 @@
   var SLEEP_SECS = [0, 30, 60, 120, 300];
   var SLEEP_LABELS = ['Off', '30 sec', '1 min', '2 min', '5 min'];
   var pendingUpdate = null;
-  var _updTimer = null, _updFallback = null;
+  var _updTimer = null, _updFallback = null, _updating = false;
   var pickedColor = SWATCHES[1];
   var pickedIcon = null;
   var isHome = document.documentElement.hasAttribute('data-qh-home');
@@ -324,7 +324,7 @@
   // ── Version + updates ──
   function markUpdate(on) { var b = $('.qh-version'); if (b) b.classList.toggle('has-update', on); }
   function checkUpdate(cb) {
-    fetch(REMOTE_VERSION_URL, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+    fetch(REMOTE_VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
       if (j && j.version && String(j.version) !== LOCAL.version) { pendingUpdate = j; markUpdate(true); } else { pendingUpdate = null; markUpdate(false); }
       if (cb) cb(true);
     }).catch(function () { if (cb) cb(false); });
@@ -366,29 +366,23 @@
   // fires the helper. If the helper can't be reached the restart never comes, so we
   // say so instead of spinning forever.
   function applyUpdate() {
-    var now = $('.qh-update-now'), st = $('.qh-update-status'), prog = $('.qh-update-progress'), fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    _updating = true;                                  // lock the popup shut until it's done
+    var now = $('.qh-update-now'), st = $('.qh-update-status'), prog = $('.qh-update-progress'), wait = $('.qh-update-wait'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
     if (now) now.style.display = 'none';
-    if (cl) cl.style.visibility = 'hidden';            // can't cancel mid-update
-    if (st) st.textContent = 'Updating — please wait. This can take a minute or two on slow wifi. The screen will restart by itself when it’s done.';
-    if (wait) { wait.classList.remove('err'); wait.textContent = 'Please don’t touch anything.'; }
-    if (prog) prog.style.display = '';
-    var pct = 6; if (fill) fill.style.width = pct + '%';
-    if (_updTimer) clearInterval(_updTimer);
-    _updTimer = setInterval(function () { pct += (93 - pct) * 0.07; if (fill) fill.style.width = Math.min(93, pct).toFixed(0) + '%'; }, 320);
-    // Fire and forget: applying the update restarts Chromium, which kills the
-    // connection before the reply returns — so the relay ALWAYS reports a dropped
-    // connection here, even on success. We can't tell success from failure at this
-    // moment, so we ignore the reply entirely. The ONLY reliable failure signal is
-    // the 35s fallback below: if nothing happened (no restart), it shows the error.
+    if (chk) chk.style.display = 'none';
+    if (cl) cl.style.visibility = 'hidden';            // no X — can't cancel mid-update
+    if (prog) prog.style.display = 'none';             // NO fake bar — the restart is the only real signal
+    if (st) st.textContent = 'Updating now — please wait. The screen will go black and restart itself when it’s done. This takes a minute or two; don’t turn it off.';
+    if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
     helper('/apply-update', function () {});
     if (_updFallback) clearTimeout(_updFallback);
-    _updFallback = setTimeout(function () { updateFailed('Still going — slow wifi can make this take a few minutes. Please keep waiting. Only if nothing has happened after several minutes, switch the laptop off and on and tap Update again.'); }, 180000);
+    _updFallback = setTimeout(function () { updateFailed('This is taking longer than a couple of minutes — your wifi may be slow, so keep waiting. If nothing happens after several minutes, switch the laptop off and on and tap Update again.'); }, 180000);
   }
   function updateFailed(msg) {
-    if (_updTimer) { clearInterval(_updTimer); _updTimer = null; }
+    _updating = false;                                 // let her close it to retry
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
-    var fill = $('.qh-update-bar-fill'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
-    if (fill) fill.style.width = '100%';
+    var st = $('.qh-update-status'), wait = $('.qh-update-wait'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
+    if (st) st.textContent = '';
     if (wait) { wait.classList.add('err'); wait.textContent = msg; }
     if (cl) cl.style.visibility = '';
   }
@@ -399,7 +393,7 @@
     if (name === 'update') fillUpdate();
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
-  function closeOverlay(name) { var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.remove('open'); }
+  function closeOverlay(name) { if (name === 'update' && _updating) return; var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.remove('open'); }
   function closeAll() { [].forEach.call($$('.qh-overlay'), function (o) { o.classList.remove('open'); }); closePanel(); }
 
   // ── Clock — ONE ──
@@ -448,7 +442,7 @@
     $('.qh-dock-btn').addEventListener('click', function (e) { e.stopPropagation(); togglePanel(); });
 
     [].forEach.call($$('[data-close]'), function (b) { b.addEventListener('click', function () { closeOverlay(b.getAttribute('data-close')); }); });
-    [].forEach.call($$('.qh-overlay'), function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) ov.classList.remove('open'); }); });
+    [].forEach.call($$('.qh-overlay'), function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) closeOverlay(ov.getAttribute('data-ov')); }); });
 
     var br = $('.qh-brightness'); if (br) br.addEventListener('input', function () { state.brightness = parseInt(br.value, 10) || 100; save({ 'qh-brightness': state.brightness }); applyLook(); });
     var nl = $('.qh-night'); if (nl) nl.addEventListener('change', function () { state.night = nl.checked; save({ 'qh-night': nl.checked ? '1' : '' }); applyLook(); });

@@ -1,6 +1,6 @@
 {
-  "version": "2.3.3",
-  "emoji": "🦋",
+  "version": "2.3.4",
+  "emoji": "🐚",
   "date": "2026-06-26",
-  "notes": "Fixes the Terminal button (the helper now hands launched windows the screen info, so they actually appear), and reloads the home screen fresh so the QuillHaven script font and quill come back."
+  "notes": "Honest updater: the fake progress bar is gone (it now just says it's working and will restart itself), the update screen can no longer be cancelled by tapping beside it, and Check for updates always fetches fresh. Plus the Terminal fix."
 }
