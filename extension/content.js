@@ -490,7 +490,7 @@
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
-    if (name === 'settings') { buildThemeDots(); buildSwatches(); buildIcons(); renderManage(); syncControls(); }
+    if (name === 'settings') { buildThemeDots(); renderManage(); syncControls(); }
     if (name === 'update' && !_updating) fillUpdate();   // don't reset the popup while an update is mid-flight
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }

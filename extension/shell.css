@@ -93,7 +93,6 @@
 .qh-row { width: 100%; text-align: left; background: none; border: none; font-family: inherit; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 13px; border-bottom: 1px solid var(--row-hover); cursor: default; }
 .qh-row:last-child { border-bottom: none; }
 .qh-row.col { flex-direction: column; align-items: stretch; gap: 9px; }
-.qh-row-line { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .qh-label { font-size: 13.5px; color: var(--text-strong); }
 .qh-hue-row { flex: 0 0 48%; display: flex; flex-direction: column; gap: 6px; }
 .qh-theme-col { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
