@@ -1,6 +1,6 @@
 {
-  "version": "2.3.14",
-  "emoji": "🐢",
+  "version": "2.3.15",
+  "emoji": "🐧",
   "date": "2026-06-27",
-  "notes": "Removed the manual 'Screen' button from Power (the screen now turns itself off when idle, so the button wasn't needed) plus its leftover icon. The auto screen-off and the screen-sleep timer are untouched."
+  "notes": "Restart and Off now ask 'are you sure?' first (with Cancel) before doing anything. They used a pop-up the locked screen was blocking, so they did nothing before — now they work and they're safe from an accidental tap."
 }

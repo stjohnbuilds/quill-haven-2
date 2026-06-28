@@ -78,6 +78,11 @@
 @keyframes qh-fade { from { opacity: 0; } to { opacity: 1; } }
 .qh-card { width: 100%; max-width: 520px; max-height: calc(100vh - 120px); display: flex; flex-direction: column; overflow-y: auto; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); box-shadow: 0 24px 60px rgba(0,0,0,0.28); animation: qh-scale 0.16s ease; }
 .qh-card.qh-card-sm { max-width: 400px; }
+.qh-confirm-body { padding: 24px 22px 20px; text-align: center; }
+.qh-confirm-msg { font-size: 15px; color: var(--text-strong); margin-bottom: 20px; line-height: 1.4; }
+.qh-confirm-actions { display: flex; gap: 10px; justify-content: center; }
+.qh-confirm-cancel { border: 1px solid var(--card-border); background: var(--row-hover); color: var(--text-strong); border-radius: 8px; padding: 9px 18px; font-family: inherit; font-size: 13px; cursor: pointer; }
+.qh-confirm-cancel:hover { border-color: var(--accent); }
 .qh-card::-webkit-scrollbar { width: 0; }
 @keyframes qh-scale { from { transform: scale(0.97); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .qh-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 8px; }

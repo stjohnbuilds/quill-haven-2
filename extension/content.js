@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.14', emoji: '🐢' };
+  var LOCAL = { version: '2.3.15', emoji: '🐧' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -75,6 +75,7 @@
   var pickedColor = SWATCHES[1];
   var pickedIcon = null;
   var editingId = null;   // when set, the add/edit popup is renaming this user app instead of adding a new one
+  var _confirmYes = null; // the action to run if the user taps Confirm in the are-you-sure popup
   var isHome = document.documentElement.hasAttribute('data-qh-home');
 
   function loadState(cb) {
@@ -205,6 +206,16 @@
         '<button class="qh-btn-save qh-update-now" style="display:none;">Update now</button>' +
         '<button class="qh-update-check">Check for updates</button>' +
         '<div class="qh-update-wait"></div>' +
+      '</div>' +
+    '</div></div>' +
+    // are-you-sure confirm popup (kiosk Chromium blocks window.confirm, so we use our own)
+    '<div class="qh-overlay" data-ov="confirm"><div class="qh-card qh-card-sm">' +
+      '<div class="qh-confirm-body">' +
+        '<div class="qh-confirm-msg"></div>' +
+        '<div class="qh-confirm-actions">' +
+          '<button class="qh-confirm-cancel">Cancel</button>' +
+          '<button class="qh-btn-save qh-confirm-yes">Confirm</button>' +
+        '</div>' +
       '</div>' +
     '</div></div>';
 
@@ -492,6 +503,13 @@
     if (name === 'update' && !_updating) fillUpdate();   // don't reset the popup while an update is mid-flight
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
+  // In-app "are you sure?" — kiosk Chromium blocks window.confirm, so power actions use this.
+  function askConfirm(msg, yesLabel, onYes) {
+    var m = $('.qh-confirm-msg'); if (m) m.textContent = msg;
+    var y = $('.qh-confirm-yes'); if (y) y.textContent = yesLabel || 'Confirm';
+    _confirmYes = onYes || null;
+    openOverlay('confirm');
+  }
   function closeOverlay(name) { if (name === 'update' && _updating) return; var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.remove('open'); }
   // Escape / close-all must honour the same mid-update lock as closeOverlay, or it could
   // close the update popup mid-install and leave the lock stuck on.
@@ -544,6 +562,8 @@
 
     [].forEach.call($$('[data-close]'), function (b) { b.addEventListener('click', function () { closeOverlay(b.getAttribute('data-close')); }); });
     [].forEach.call($$('.qh-overlay'), function (ov) { ov.addEventListener('click', function (e) { if (e.target === ov) closeOverlay(ov.getAttribute('data-ov')); }); });
+    var cy = $('.qh-confirm-yes'); if (cy) cy.addEventListener('click', function () { var fn = _confirmYes; _confirmYes = null; closeOverlay('confirm'); if (fn) fn(); });
+    var cc = $('.qh-confirm-cancel'); if (cc) cc.addEventListener('click', function () { _confirmYes = null; closeOverlay('confirm'); });
 
     var br = $('.qh-brightness'); if (br) br.addEventListener('input', function () { state.brightness = parseInt(br.value, 10) || 100; save({ 'qh-brightness': state.brightness }); applyLook(); });
     var hue = $('.qh-hue'); if (hue) hue.addEventListener('input', function () { state.hue = parseHue(hue.value); save({ 'qh-hue': state.hue }); applyLook(); syncControls(); });
@@ -556,8 +576,8 @@
         if (act === 'wifi') helper('/wifi-settings');
         else if (act === 'terminal') { helper('/terminal'); }
         else if (act === 'sleep') helper('/sleep');
-        else if (act === 'restart') { if (window.confirm('Restart the laptop?')) helper('/reboot'); }
-        else if (act === 'poweroff') { if (window.confirm('Power off the laptop?')) helper('/poweroff'); }
+        else if (act === 'restart') askConfirm('Restart the laptop?', 'Restart', function () { helper('/reboot'); });
+        else if (act === 'poweroff') askConfirm('Turn the laptop off?', 'Turn off', function () { helper('/poweroff'); });
       });
     });
 
