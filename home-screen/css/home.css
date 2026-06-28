@@ -14,17 +14,13 @@
 
 /* The wallpaper — the only theme-aware thing on the backdrop (one gradient each). */
 :root        { --bg: linear-gradient(135deg, #f6eeff 0%, #fcf3f8 45%, #f0f5ff 100%);
-               --ink: #6b5f6e; --ink-soft: #a893b0;
-               --orb1: rgba(183,103,255,0.07); --orb2: rgba(210,139,181,0.08); --orb3: rgba(198,212,229,0.10); }
+               --ink: #6b5f6e; --ink-soft: #a893b0; }
 html.theme-wood  { --bg: linear-gradient(135deg, #f1f0ee 0%, #f3f2f0 45%, #efeeeb 100%);
-                   --ink: #675e54; --ink-soft: #9a9082;
-                   --orb1: rgba(140,128,112,0.05); --orb2: rgba(150,135,118,0.05); --orb3: rgba(142,130,114,0.05); }
+                   --ink: #675e54; --ink-soft: #9a9082; }
 html.theme-slate { --bg: linear-gradient(135deg, #eeeef0 0%, #f2f2f4 45%, #ececee 100%);
-                   --ink: #6b7079; --ink-soft: #9a9ea6;
-                   --orb1: rgba(120,120,130,0.06); --orb2: rgba(130,130,140,0.07); --orb3: rgba(120,122,132,0.06); }
+                   --ink: #6b7079; --ink-soft: #9a9ea6; }
 html.theme-dark  { --bg: linear-gradient(135deg, #1e1a28 0%, #2a2535 45%, #1a1e2e 100%);
-                   --ink: #a898b0; --ink-soft: #887898;
-                   --orb1: rgba(120,60,200,0.08); --orb2: rgba(160,80,140,0.08); --orb3: rgba(100,120,180,0.10); }
+                   --ink: #a898b0; --ink-soft: #887898; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {

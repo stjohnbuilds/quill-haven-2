@@ -116,7 +116,8 @@
   }
   // Publish the one app list's URLs so the lockdown (background.js) allows exactly these sites.
   function publishApps() { try { save({ 'qh-app-urls': allApps().map(function (a) { return a.url; }) }); } catch (e) {} }
-  function gradOf(a) { return 'linear-gradient(145deg,' + (a.c1 || '#cdbce6') + ',' + (a.c2 || '#b083e0') + ')'; }
+  function grad(c1, c2) { return 'linear-gradient(145deg,' + c1 + ',' + c2 + ')'; }
+  function gradOf(a) { return grad(a.c1 || '#cdbce6', a.c2 || '#b083e0'); }
   function normalizeUrl(raw) { var s = (raw || '').trim(); if (!s) return ''; if (!/^https?:\/\//i.test(s)) s = 'https://' + s; try { new URL(s); return s; } catch (e) { return ''; } }
 
   // ── Build the shell inside one shadow root ──
@@ -190,8 +191,8 @@
         '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
         '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
         '<div class="qh-pickers">' +
-          '<div class="qh-pick" data-pick="colour"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
-          '<div class="qh-pick" data-pick="icon"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
+          '<div class="qh-pick"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
+          '<div class="qh-pick"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
         '</div>' +
         '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
       '</div>' +
@@ -260,14 +261,15 @@
   function togglePanel() { var p = $('.qh-dock-panel'); if (p.classList.contains('open')) closePanel(); else openPanel(); }
 
   // ── Settings app management ──
+  function pickOne(sel, btn) { [].forEach.call($$(sel), function (s) { s.classList.remove('active'); }); btn.classList.add('active'); }
   function buildSwatches() {
     var wrap = $('.qh-swatches'); if (!wrap) return; wrap.innerHTML = '';
     SWATCHES.forEach(function (c) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'qh-swatch' + (pickedColor[0] === c[0] && pickedColor[1] === c[1] ? ' active' : '');
-      b.innerHTML = '<span style="background:linear-gradient(145deg,' + c[0] + ',' + c[1] + ')"></span>';
-      b.addEventListener('click', function () { pickedColor = c; [].forEach.call($$('.qh-swatch'), function (s) { s.classList.remove('active'); }); b.classList.add('active'); updatePickFaces(); closePicks(); });
+      b.innerHTML = '<span style="background:' + grad(c[0], c[1]) + '"></span>';
+      b.addEventListener('click', function () { pickedColor = c; pickOne('.qh-swatch', b); updatePickFaces(); closePicks(); });
       wrap.appendChild(b);
     });
   }
@@ -278,14 +280,14 @@
       b.type = 'button'; b.title = label;
       b.className = 'qh-icon-choice' + (active ? ' active' : '');
       b.innerHTML = ico || '<span class="qh-ic-letter">A</span>';
-      b.addEventListener('click', function () { pickedIcon = ico || null; [].forEach.call($$('.qh-icon-choice'), function (s) { s.classList.remove('active'); }); b.classList.add('active'); updatePickFaces(); closePicks(); });
+      b.addEventListener('click', function () { pickedIcon = ico || null; pickOne('.qh-icon-choice', b); updatePickFaces(); closePicks(); });
       wrap.appendChild(b);
     }
     choice('Letter', null, !pickedIcon);
     ICONS.forEach(function (ic) { choice(ic.id, ic.svg, pickedIcon === ic.svg); });
   }
   function updatePickFaces() {
-    var cf = $('.qh-colour-face'); if (cf) cf.style.background = 'linear-gradient(145deg,' + pickedColor[0] + ',' + pickedColor[1] + ')';
+    var cf = $('.qh-colour-face'); if (cf) cf.style.background = grad(pickedColor[0], pickedColor[1]);
     var icf = $('.qh-icon-face'); if (icf) icf.innerHTML = pickedIcon || '<span class="qh-ic-letter">A</span>';
   }
   function closePicks() { [].forEach.call($$('.qh-pick'), function (p) { p.classList.remove('open'); }); }
@@ -341,7 +343,7 @@
     THEMES.forEach(function (t) {
       var b = document.createElement('button');
       b.className = 'qh-dot ' + t + (t === state.theme ? ' active' : ''); b.title = THEME_LABELS[t] || t; b.innerHTML = '<span></span>';
-      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); [].forEach.call($$('.qh-dot'), function (d) { d.classList.remove('active'); }); b.classList.add('active'); setThemeName(); applyLook(); });
+      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); pickOne('.qh-dot', b); setThemeName(); applyLook(); });
       wrap.appendChild(b);
     });
     setThemeName();
@@ -362,37 +364,40 @@
       if (cb) cb(true);
     }).catch(function () { if (cb) cb(false); });
   }
+  // One accessor for every element in the update popup (the long close-X selector lives here only).
+  function updEls() { return { st: $('.qh-update-status'), now: $('.qh-update-now'), em: $('.qh-update-emoji'),
+    wait: $('.qh-update-wait'), chk: $('.qh-update-check'), cl: $('.qh-overlay[data-ov="update"] .qh-close') }; }
   // The "Check for updates" button: look right now, then show the result in the popup.
   function checkNow() {
     if (_updating) return;                             // don't reset the popup while an update is mid-flight
-    var st = $('.qh-update-status'), btn = $('.qh-update-check');
-    if (st) st.textContent = 'Checking…';
-    if (btn) btn.disabled = true;
+    var u = updEls();
+    if (u.st) u.st.textContent = 'Checking…';
+    if (u.chk) u.chk.disabled = true;
     checkUpdate(function (ok) {
-      if (btn) btn.disabled = false;
-      if (!ok) { if (st) st.textContent = 'Couldn’t check just now — try again in a moment.'; return; }
+      if (u.chk) u.chk.disabled = false;
+      if (!ok) { if (u.st) u.st.textContent = 'Couldn’t check just now — try again in a moment.'; return; }
       fillUpdate();
     });
   }
   function resetUpdateUI() {
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
-    var wait = $('.qh-update-wait'), em = $('.qh-update-emoji'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
-    if (em) em.classList.remove('qh-working');
-    if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
-    if (chk) chk.style.display = '';
-    if (cl) cl.style.visibility = '';
+    var u = updEls();
+    if (u.em) u.em.classList.remove('qh-working');
+    if (u.wait) { u.wait.classList.remove('err'); u.wait.textContent = ''; }
+    if (u.chk) u.chk.style.display = '';
+    if (u.cl) u.cl.style.visibility = '';
   }
   function fillUpdate() {
     resetUpdateUI();
-    var st = $('.qh-update-status'), now = $('.qh-update-now'), em = $('.qh-update-emoji');
+    var u = updEls();
     if (pendingUpdate) {
-      if (em) em.textContent = pendingUpdate.emoji || LOCAL.emoji;
-      if (st) st.textContent = 'A new version is ready.';
-      if (now) now.style.display = '';
+      if (u.em) u.em.textContent = pendingUpdate.emoji || LOCAL.emoji;
+      if (u.st) u.st.textContent = 'A new version is ready.';
+      if (u.now) u.now.style.display = '';
     } else {
-      if (em) em.textContent = LOCAL.emoji;
-      if (st) st.textContent = 'You’re up to date.';
-      if (now) now.style.display = 'none';
+      if (u.em) u.em.textContent = LOCAL.emoji;
+      if (u.st) u.st.textContent = 'You’re up to date.';
+      if (u.now) u.now.style.display = 'none';
     }
   }
   // Tapping Update: (1) the emoji breathes so it never looks frozen; (2) WAIT until
@@ -405,14 +410,13 @@
     if (_updating) return;                             // already mid-update — ignore repeat taps
     if (!pendingUpdate || !pendingUpdate.version) return;
     _updating = true; _applySent = false;              // lock the popup shut until it's done
-    var now = $('.qh-update-now'), st = $('.qh-update-status'), em = $('.qh-update-emoji'),
-        wait = $('.qh-update-wait'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
-    if (now) now.style.display = 'none';
-    if (chk) chk.style.display = 'none';
-    if (cl) cl.style.visibility = 'hidden';            // no X — can't cancel mid-update
-    if (em) em.classList.add('qh-working');            // breathing emoji = real sign of life
-    if (wait) { wait.classList.remove('err'); wait.textContent = ''; }
-    if (st) st.textContent = 'Getting your update ready…';
+    var u = updEls();
+    if (u.now) u.now.style.display = 'none';
+    if (u.chk) u.chk.style.display = 'none';
+    if (u.cl) u.cl.style.visibility = 'hidden';        // no X — can't cancel mid-update
+    if (u.em) u.em.classList.add('qh-working');        // breathing emoji = real sign of life
+    if (u.wait) { u.wait.classList.remove('err'); u.wait.textContent = ''; }
+    if (u.st) u.st.textContent = 'Getting your update ready…';
     waitForPublish(String(pendingUpdate.version), 0);
   }
   // Poll the delivery copy of this file until it carries the new version number —
@@ -437,8 +441,8 @@
   // we're heading to, so that after the restart we can confirm it really landed.
   function doApply(target) {
     if (!_updating) return;
-    var st = $('.qh-update-status');
-    if (st) st.textContent = 'Installing your update… the screen will go dark and come back on its own. Don’t turn it off.';
+    var u = updEls();
+    if (u.st) u.st.textContent = 'Installing your update… the screen will go dark and come back on its own. Don’t turn it off.';
     save({ 'qh-updating-to': target });
     helper('/apply-update', function (res) {
       if (!res || !res.ok) { updateFailed('Couldn’t reach the updater (' + ((res && res.reason) || 'no-sw') + '). Switch the laptop off and on, then tap Update again.'); return; }
@@ -451,9 +455,8 @@
     if (_updFallback) clearTimeout(_updFallback);
     _updFallback = setTimeout(function () {
       if (_applySent) {
-        var st2 = $('.qh-update-status'), wait = $('.qh-update-wait');
-        if (st2) st2.textContent = '';
-        if (wait) { wait.classList.remove('err'); wait.textContent = 'Still working… if the screen doesn’t go dark and come back in a few minutes, switch the laptop off and on — it’ll finish on its own.'; }
+        if (u.st) u.st.textContent = '';
+        if (u.wait) { u.wait.classList.remove('err'); u.wait.textContent = 'Still working… if the screen doesn’t go dark and come back in a few minutes, switch the laptop off and on — it’ll finish on its own.'; }
       } else {
         updateFailed('That took too long to start. Switch the laptop off and on, then tap Update again.');
       }
@@ -463,14 +466,13 @@
     _updating = false;                                 // let her close it to retry
     try { chrome.storage.local.remove('qh-updating-to'); } catch (e) {}   // never leave a stale "updated" flag
     if (_updFallback) { clearTimeout(_updFallback); _updFallback = null; }
-    var st = $('.qh-update-status'), wait = $('.qh-update-wait'), em = $('.qh-update-emoji'),
-        now = $('.qh-update-now'), chk = $('.qh-update-check'), cl = $('.qh-overlay[data-ov="update"] .qh-close');
-    if (em) em.classList.remove('qh-working');
-    if (st) st.textContent = '';
-    if (wait) { wait.classList.add('err'); wait.textContent = msg; }
-    if (now) now.style.display = '';                   // offer the retry
-    if (chk) chk.style.display = '';
-    if (cl) cl.style.visibility = '';
+    var u = updEls();
+    if (u.em) u.em.classList.remove('qh-working');
+    if (u.st) u.st.textContent = '';
+    if (u.wait) { u.wait.classList.add('err'); u.wait.textContent = msg; }
+    if (u.now) u.now.style.display = '';               // offer the retry
+    if (u.chk) u.chk.style.display = '';
+    if (u.cl) u.cl.style.visibility = '';
   }
   // After an update restart, if we landed on exactly the version we set out for, tell
   // her plainly it worked (the changed emoji is the proof; this names it). Cleared
@@ -567,8 +569,8 @@
 
     var br = $('.qh-brightness'); if (br) br.addEventListener('input', function () { state.brightness = parseInt(br.value, 10) || 100; save({ 'qh-brightness': state.brightness }); applyLook(); });
     var hue = $('.qh-hue'); if (hue) hue.addEventListener('input', function () { state.hue = parseHue(hue.value); save({ 'qh-hue': state.hue }); applyLook(); syncControls(); });
-    var sl = $('.qh-sleep'); if (sl) { SLEEP_LABELS.forEach(function (lab, i) { var o = document.createElement('option'); o.value = String(i); o.textContent = lab; sl.appendChild(o); }); sl.addEventListener('change', function () { var i = parseInt(sl.value, 10) || 0; state.screenIdle = SLEEP_SECS[i]; save({ 'qh-screen-idle': state.screenIdle }); }); }
-    var rg = $('.qh-region'); if (rg) { REGIONS.forEach(function (r) { var o = document.createElement('option'); o.value = r[0]; o.textContent = r[1]; rg.appendChild(o); }); rg.addEventListener('change', function () { state.tz = rg.value; save({ 'qh-tz': rg.value }); tick(); }); }
+    var sl = $('.qh-sleep'); if (sl) { fillSelect(sl, SLEEP_LABELS.map(function (lab, i) { return [String(i), lab]; })); sl.addEventListener('change', function () { var i = parseInt(sl.value, 10) || 0; state.screenIdle = SLEEP_SECS[i]; save({ 'qh-screen-idle': state.screenIdle }); }); }
+    var rg = $('.qh-region'); if (rg) { fillSelect(rg, REGIONS); rg.addEventListener('change', function () { state.tz = rg.value; save({ 'qh-tz': rg.value }); tick(); }); }
 
     [].forEach.call($$('.click[data-act]'), function (rowEl) {
       var act = rowEl.getAttribute('data-act');
@@ -616,14 +618,17 @@
 
   // ── Movable bar — drag from the grip; clamp on-screen; save + restore (one store) ──
   function clampN(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
-  function applyBarPos() {
+  function fillSelect(el, pairs) { pairs.forEach(function (p) { var o = document.createElement('option'); o.value = p[0]; o.textContent = p[1]; el.appendChild(o); }); }
+  function placeBar(x, y) {
     var bar = $('.qh-bar'); if (!bar) return;
-    var p = state.barPos;
-    if (!p || typeof p.x !== 'number' || typeof p.y !== 'number') return;
     var w = bar.offsetWidth || 0, h = bar.offsetHeight || 0;
-    bar.style.left = clampN(p.x, 4, Math.max(4, window.innerWidth - w - 4)) + 'px';
-    bar.style.top = clampN(p.y, 4, Math.max(4, window.innerHeight - h - 4)) + 'px';
+    bar.style.left = clampN(x, 4, Math.max(4, window.innerWidth - w - 4)) + 'px';
+    bar.style.top = clampN(y, 4, Math.max(4, window.innerHeight - h - 4)) + 'px';
     bar.style.right = 'auto'; bar.style.bottom = 'auto';
+  }
+  function applyBarPos() {
+    var p = state.barPos;
+    if (p && typeof p.x === 'number' && typeof p.y === 'number') placeBar(p.x, p.y);
   }
   function setupBarDrag() {
     var bar = $('.qh-bar'), grip = $('.qh-grip'); if (!bar || !grip) return;
@@ -637,10 +642,7 @@
     });
     grip.addEventListener('pointermove', function (e) {
       if (!dragging) return;
-      var w = bar.offsetWidth, h = bar.offsetHeight;
-      bar.style.left = clampN(origX + (e.clientX - startX), 4, Math.max(4, window.innerWidth - w - 4)) + 'px';
-      bar.style.top = clampN(origY + (e.clientY - startY), 4, Math.max(4, window.innerHeight - h - 4)) + 'px';
-      bar.style.right = 'auto'; bar.style.bottom = 'auto';
+      placeBar(origX + (e.clientX - startX), origY + (e.clientY - startY));
     });
     function end() {
       if (!dragging) return; dragging = false;
