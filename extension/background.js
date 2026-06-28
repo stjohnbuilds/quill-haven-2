@@ -79,7 +79,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 // yet tested on real hardware, and a bug here could strand the user. So we ship it
 // OFF for the first on-device test (bar + screen only), then flip this to true and
 // re-deliver once the bar is confirmed working. While false, nothing is ever blocked.
-var LOCKDOWN_ENABLED = false;
+var LOCKDOWN_ENABLED = true;
 
 // Lockdown only switches on once the home screen is known (see note above) AND the
 // staged switch above is on.

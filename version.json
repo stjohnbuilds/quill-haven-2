@@ -1,6 +1,6 @@
 {
-  "version": "2.3.15",
-  "emoji": "🐧",
+  "version": "2.3.16",
+  "emoji": "🦋",
   "date": "2026-06-27",
-  "notes": "Restart and Off now ask 'are you sure?' first (with Cancel) before doing anything. They used a pop-up the locked screen was blocking, so they did nothing before — now they work and they're safe from an accidental tap."
+  "notes": "Website-blocking is now ON. The computer stays on your writing apps only — if anything tries to open a different website, it sends you straight back to your home screen. Your home screen is always allowed, so you're never stuck."
 }
