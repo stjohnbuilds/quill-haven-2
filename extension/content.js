@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.16', emoji: '🦋' };
+  var LOCAL = { version: '2.3.17', emoji: '🦊' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -159,8 +159,7 @@
     '<div class="qh-overlay" data-ov="settings"><div class="qh-card">' +
       '<div class="qh-head"><div class="qh-title">Settings</div><button class="qh-close" data-close="settings">&#x2715;</button></div>' +
       '<div class="qh-section">Device</div><div class="qh-group">' +
-        '<div class="qh-row col"><div class="qh-row-line"><div class="qh-label">Theme</div><div class="qh-theme-name"></div></div><div class="qh-theme-dots"></div></div>' +
-        '<div class="qh-row col qh-hue-row"><div class="qh-row-line"><div><div class="qh-label">Tint</div><div class="qh-sub">Shift the colour</div></div><div class="qh-hue-value">0</div></div><input type="range" min="0" max="360" class="qh-hue"></div>' +
+        '<div class="qh-row"><div class="qh-hue-row"><div class="qh-label">Tint</div><input type="range" min="0" max="360" class="qh-hue"></div><div class="qh-theme-col"><div class="qh-label">Theme</div><div class="qh-theme-dots"></div></div></div>' +
         '<div class="qh-row col"><div class="qh-two-btns">' +
           '<button class="qh-pwr click qh-wifi-btn" data-act="wifi" title="Wi-Fi">' + I.wifi + '<span>Wi-Fi</span></button>' +
           '<button class="qh-pwr click" data-act="terminal" title="Open terminal">' + I.terminal + '<span>Terminal</span></button>' +
@@ -190,10 +189,8 @@
       '<div class="qh-add-inline">' +
         '<input class="qh-input qh-add-name" placeholder="Name (e.g. Notion)" maxlength="24" autocomplete="off">' +
         '<input class="qh-input qh-add-url" placeholder="Website (e.g. notion.so)" autocomplete="off">' +
-        '<div class="qh-pickers">' +
-          '<div class="qh-pick"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-colour-face"></span><span class="qh-pick-cap">Colour</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-swatches"></div></div>' +
-          '<div class="qh-pick"><button type="button" class="qh-pick-btn"><span class="qh-pick-face qh-icon-face"></span><span class="qh-pick-cap">Icon</span><span class="qh-pick-chev">&#x25BE;</span></button><div class="qh-pick-menu qh-icons"></div></div>' +
-        '</div>' +
+        '<div class="qh-pick-label">Colour</div><div class="qh-swatches"></div>' +
+        '<div class="qh-pick-label">Icon</div><div class="qh-icons"></div>' +
         '<div class="qh-add-actions"><button class="qh-btn-save qh-add-save">Add app</button></div>' +
       '</div>' +
     '</div></div>' +
@@ -269,7 +266,7 @@
       b.type = 'button';
       b.className = 'qh-swatch' + (pickedColor[0] === c[0] && pickedColor[1] === c[1] ? ' active' : '');
       b.innerHTML = '<span style="background:' + grad(c[0], c[1]) + '"></span>';
-      b.addEventListener('click', function () { pickedColor = c; pickOne('.qh-swatch', b); updatePickFaces(); closePicks(); });
+      b.addEventListener('click', function () { pickedColor = c; pickOne('.qh-swatch', b); });
       wrap.appendChild(b);
     });
   }
@@ -280,17 +277,12 @@
       b.type = 'button'; b.title = label;
       b.className = 'qh-icon-choice' + (active ? ' active' : '');
       b.innerHTML = ico || '<span class="qh-ic-letter">A</span>';
-      b.addEventListener('click', function () { pickedIcon = ico || null; pickOne('.qh-icon-choice', b); updatePickFaces(); closePicks(); });
+      b.addEventListener('click', function () { pickedIcon = ico || null; pickOne('.qh-icon-choice', b); });
       wrap.appendChild(b);
     }
     choice('Letter', null, !pickedIcon);
     ICONS.forEach(function (ic) { choice(ic.id, ic.svg, pickedIcon === ic.svg); });
   }
-  function updatePickFaces() {
-    var cf = $('.qh-colour-face'); if (cf) cf.style.background = grad(pickedColor[0], pickedColor[1]);
-    var icf = $('.qh-icon-face'); if (icf) icf.innerHTML = pickedIcon || '<span class="qh-ic-letter">A</span>';
-  }
-  function closePicks() { [].forEach.call($$('.qh-pick'), function (p) { p.classList.remove('open'); }); }
   // Lists EVERY app (built-in + your added sites). A toggle shows/hides it in the dock;
   // Remove only appears on your own added sites (built-ins can be hidden, never removed).
   function renderManage() {
@@ -321,7 +313,7 @@
     // match the picker state to this app (or reset for a new one)
     pickedColor = (a && a.c1) ? [a.c1, a.c2 || a.c1] : SWATCHES[1];
     pickedIcon = (a && a.icon) ? a.icon : null;
-    buildSwatches(); buildIcons(); updatePickFaces(); closePicks();
+    buildSwatches(); buildIcons();
   }
   function saveAdd() {
     var name = $('.qh-add-name').value.trim(); var url = normalizeUrl($('.qh-add-url').value);
@@ -337,21 +329,18 @@
   }
 
   // ── Settings popup ──
-  function setThemeName() { var n = $('.qh-theme-name'); if (n) n.textContent = THEME_LABELS[state.theme] || state.theme; }
   function buildThemeDots() {
     var wrap = $('.qh-theme-dots'); if (!wrap) return; wrap.innerHTML = '';
     THEMES.forEach(function (t) {
       var b = document.createElement('button');
       b.className = 'qh-dot ' + t + (t === state.theme ? ' active' : ''); b.title = THEME_LABELS[t] || t; b.innerHTML = '<span></span>';
-      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); pickOne('.qh-dot', b); setThemeName(); applyLook(); });
+      b.addEventListener('click', function () { state.theme = t; save({ 'qh-theme': t }); pickOne('.qh-dot', b); applyLook(); });
       wrap.appendChild(b);
     });
-    setThemeName();
   }
   function syncControls() {
     var br = $('.qh-brightness'); if (br) br.value = state.brightness;
     var hue = $('.qh-hue'); if (hue) hue.value = state.hue;
-    var hv = $('.qh-hue-value'); if (hv) hv.textContent = state.hue;
     var rg = $('.qh-region'); if (rg) rg.value = state.tz;
     var sl = $('.qh-sleep'); if (sl) { var si = SLEEP_SECS.indexOf(state.screenIdle); if (si < 0) si = 4; sl.value = String(si); }
   }
@@ -501,7 +490,7 @@
 
   // ── Overlays (open/close any popup) ──
   function openOverlay(name) {
-    if (name === 'settings') { buildThemeDots(); buildSwatches(); buildIcons(); updatePickFaces(); renderManage(); syncControls(); }
+    if (name === 'settings') { buildThemeDots(); buildSwatches(); buildIcons(); renderManage(); syncControls(); }
     if (name === 'update' && !_updating) fillUpdate();   // don't reset the popup while an update is mid-flight
     var ov = $('.qh-overlay[data-ov="' + name + '"]'); if (ov) ov.classList.add('open');
   }
@@ -589,11 +578,6 @@
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-update-now').addEventListener('click', applyUpdate);
     $('.qh-update-check').addEventListener('click', checkNow);
-
-    [].forEach.call($$('.qh-pick-btn'), function (btn) {
-      btn.addEventListener('click', function (e) { e.stopPropagation(); var pick = btn.parentNode, wasOpen = pick.classList.contains('open'); closePicks(); if (!wasOpen) pick.classList.add('open'); });
-    });
-    document.addEventListener('click', function (e) { var inPick = e.composedPath && e.composedPath().some(function (n) { return n.classList && n.classList.contains('qh-pick'); }); if (!inPick) closePicks(); }, true);
 
     document.addEventListener('click', function (e) { if (e.composedPath && e.composedPath().indexOf($('.qh-dock-panel')) < 0 && e.composedPath().indexOf($('.qh-dock-btn')) < 0) closePanel(); }, true);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); }, true);

@@ -95,9 +95,8 @@
 .qh-row.col { flex-direction: column; align-items: stretch; gap: 9px; }
 .qh-row-line { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .qh-label { font-size: 13.5px; color: var(--text-strong); }
-.qh-sub { font-size: 12px; color: var(--text-muted); }
-.qh-hue-value { color: var(--text-muted); font-size: 13px; }
-.qh-theme-name { color: var(--text-muted); font-size: 13px; }
+.qh-hue-row { flex: 0 0 48%; display: flex; flex-direction: column; gap: 6px; }
+.qh-theme-col { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 /* Wi-Fi + Terminal: two power-style buttons, centred (not stretched full width). */
 .qh-two-btns { display: flex; gap: 8px; justify-content: center; }
 .qh-two-btns .qh-pwr { flex: 0 0 120px; }
@@ -146,15 +145,8 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 .qh-swatch { width: 30px; height: 30px; border-radius: 9px; cursor: pointer; border: 2px solid transparent; padding: 0; background: none; }
 .qh-swatch span { display: block; width: 100%; height: 100%; border-radius: 7px; }
 .qh-swatch.active { border-color: var(--accent-strong); }
-.qh-pickers { display: flex; gap: 10px; }
-.qh-pick { position: relative; flex: 1; }
-.qh-pick-btn { width: 100%; display: flex; align-items: center; gap: 8px; background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 9px; padding: 7px 10px; font-family: inherit; font-size: 12.5px; color: var(--text-soft); cursor: pointer; }
-.qh-pick-face { width: 22px; height: 22px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; background: var(--row-hover); }
-.qh-icon-face { color: var(--text-strong); }
-.qh-pick-cap { flex: 1; text-align: left; }
-.qh-pick-chev { color: var(--text-muted); font-size: 10px; }
-.qh-pick-menu { display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; z-index: 6; background: var(--panel-bg); border: 1px solid var(--card-border); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.2); padding: 11px; }
-.qh-pick.open .qh-pick-menu { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.qh-pick-label { font-size: 12px; color: var(--text-muted); margin: 8px 0 6px; }
+.qh-swatches, .qh-icons { display: flex; flex-wrap: wrap; gap: 9px; }
 .qh-icon-choice { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; border: 2px solid transparent; background: var(--row-hover); color: var(--text-strong); cursor: pointer; padding: 0; }
 .qh-icon-choice.active { border-color: var(--accent-strong); }
 .qh-ic-letter { font-weight: 600; font-size: 15px; color: var(--text-soft); }

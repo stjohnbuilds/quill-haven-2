@@ -1,6 +1,6 @@
 {
-  "version": "2.3.16",
-  "emoji": "🦋",
-  "date": "2026-06-27",
-  "notes": "Website-blocking is now ON. The computer stays on your writing apps only — if anything tries to open a different website, it sends you straight back to your home screen. Your home screen is always allowed, so you're never stuck."
+  "version": "2.3.17",
+  "emoji": "🦊",
+  "date": "2026-06-28",
+  "notes": "Tidier Settings. When you tap 'Add app', the colours and icons now show as buttons you can actually see — no more cut-off pop-up. Theme and Tint now sit together in one neat row: the Tint slider on the left, the four colour dots (light to dark) on the right. Plus a quiet code clean-up behind the scenes."
 }
