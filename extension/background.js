@@ -75,14 +75,10 @@ chrome.storage.onChanged.addListener(function (changes, area) {
   if (area === 'local' && (changes['qh-app-urls'] || changes['qh-home-url'])) loadState();
 });
 
-// STAGED ROLLOUT SWITCH. The floating bar is safe; the lockdown is the part not
-// yet tested on real hardware, and a bug here could strand the user. So we ship it
-// OFF for the first on-device test (bar + screen only), then flip this to true and
-// re-deliver once the bar is confirmed working. While false, nothing is ever blocked.
+// Master lockdown switch (ON). Set false to turn all website-blocking off.
 var LOCKDOWN_ENABLED = true;
 
-// Lockdown only switches on once the home screen is known (see note above) AND the
-// staged switch above is on.
+// Only enforce once the home URL is known, so a fresh boot can't bounce itself.
 function enforcing() { return LOCKDOWN_ENABLED && !!state.homeHost; }
 
 function isAllowed(host) {
