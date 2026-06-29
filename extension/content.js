@@ -29,15 +29,15 @@
   var ICONS = [
     { id: 'book', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>' },
     { id: 'pencil', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>' },
-    { id: 'feather', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 3.8a5 5 0 0 0-7 0L4 13v7h7l9.2-9.2a5 5 0 0 0 0-7z"/><path d="M16 8 4 20"/><path d="M17.5 11.5H9"/></svg>' },
+    { id: 'feather', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/></svg>' },
     { id: 'star', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.8 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>' },
     { id: 'heart', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.1a5 5 0 0 0-7.1 0L12 6.8l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>' },
-    { id: 'leaf', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13C4 8 8 4 13 3c1 6-1 11-2 17z"/><path d="M11 20c0-5 3-9 8-10"/></svg>' },
+    { id: 'leaf', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>' },
     { id: 'note', svg: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/></svg>' }
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.19', emoji: '🐙' };
+  var LOCAL = { version: '2.3.20', emoji: '🐬' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -478,6 +478,17 @@
       });
     } catch (e) {}
   }
+  // After a blocked site bounces us home, say so once (background.js sets the flag).
+  function confirmBlocked() {
+    try {
+      chrome.storage.local.get(['qh-blocked-at'], function (v) {
+        if (chrome.runtime.lastError) return;
+        if (!(v && v['qh-blocked-at'])) return;
+        try { chrome.storage.local.remove('qh-blocked-at'); } catch (e) {}
+        showToast('Sorry — that site is blocked.');
+      });
+    } catch (e) {}
+  }
   function showToast(msg) {
     try {
       var t = document.createElement('div');
@@ -653,6 +664,7 @@
       window.addEventListener('online', syncWifi); window.addEventListener('offline', syncWifi);
       checkUpdate(); setInterval(checkUpdate, 30 * 60 * 1000);
       confirmUpdateLanded();
+      confirmBlocked();
       watchStorage();
     });
   }

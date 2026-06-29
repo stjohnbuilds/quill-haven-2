@@ -1,6 +1,6 @@
 {
-  "version": "2.3.19",
-  "emoji": "🐙",
+  "version": "2.3.20",
+  "emoji": "🐬",
   "date": "2026-06-28",
-  "notes": "Much bigger distraction block-list. On top of the social sites, it now also blocks news (BBC, CNN, Guardian, news.com.au...), shopping (Amazon, eBay, Temu, Shein...), music (Spotify, SoundCloud...), LinkedIn, games (Steam, Roblox...), more video and chat, and adult sites. All bounced straight home. Want any one of them allowed back? Just say which."
+  "notes": "When a blocked site bounces you home, it now pops up a little 'Sorry — that site is blocked' note so you know what happened. Also tidied up the feather and leaf icons in the Add-app picker."
 }

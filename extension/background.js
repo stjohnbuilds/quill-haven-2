@@ -124,7 +124,8 @@ function isAllowed(host) {
   return false;
 }
 
-function sendHome(tabId) {
+function sendHome(tabId, host) {
+  try { chrome.storage.local.set({ 'qh-blocked-at': host || '1' }); } catch (e) {}  // shell shows a "blocked" notice on the home page
   if (state.homeUrl) { try { chrome.tabs.update(tabId, { url: state.homeUrl }); return; } catch (e) {} }
   try { fetch(HELPER + '/go-home', { method: 'POST' }).catch(function () {}); } catch (e) {}
 }
@@ -133,10 +134,10 @@ chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
   if (d.frameId !== 0) return;                 // only whole-page navigations, not embeds
   if (!/^https?:\/\//i.test(d.url || '')) return; // leave chrome://, about:, data: etc. alone
   var host = hostOf(d.url);
-  if (isBlocked(host)) { sendHome(d.tabId); return; } // hard deny — always on, even if added
+  if (isBlocked(host)) { sendHome(d.tabId, host); return; } // hard deny — always on, even if added
   if (!enforcing()) return;                    // not set up yet → don't block (fail open)
   if (isAllowed(host)) return;
-  sendHome(d.tabId);                           // blocked → back home
+  sendHome(d.tabId, host);                      // blocked → back home
 });
 
 /* ── 3. Screen-off when idle (battery) ── */
