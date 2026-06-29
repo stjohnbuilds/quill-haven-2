@@ -1,6 +1,6 @@
 {
-  "version": "2.3.18",
-  "emoji": "🦉",
+  "version": "2.3.19",
+  "emoji": "🐙",
   "date": "2026-06-28",
-  "notes": "Distraction sites are now BLOCKED on purpose. YouTube, Facebook, Instagram, TikTok, Reddit, Bluesky, X, Threads, Snapchat, Pinterest, Tumblr, Netflix, Twitch and Discord get bounced straight back to your home screen — even if you try to add them as an app. This is the hard block-list you asked for."
+  "notes": "Much bigger distraction block-list. On top of the social sites, it now also blocks news (BBC, CNN, Guardian, news.com.au...), shopping (Amazon, eBay, Temu, Shein...), music (Spotify, SoundCloud...), LinkedIn, games (Steam, Roblox...), more video and chat, and adult sites. All bounced straight home. Want any one of them allowed back? Just say which."
 }

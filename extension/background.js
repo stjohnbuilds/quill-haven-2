@@ -40,9 +40,29 @@ var INFRA_SUFFIXES = ['gstatic.com', 'googleusercontent.com', 'googleapis.com', 
 
 // The deliberate DENY-LIST: common distraction sites ALWAYS bounced home — even if
 // added as an app, and even before the rest of the lockdown is set up.
-var BLOCKED = ['youtube.com', 'youtu.be', 'facebook.com', 'instagram.com', 'tiktok.com',
-  'reddit.com', 'bsky.app', 'twitter.com', 'x.com', 'threads.net', 'snapchat.com',
-  'pinterest.com', 'tumblr.com', 'netflix.com', 'twitch.tv', 'discord.com'];
+var BLOCKED = [
+  // social + forums
+  'facebook.com', 'instagram.com', 'tiktok.com', 'twitter.com', 'x.com', 'threads.net',
+  'bsky.app', 'snapchat.com', 'pinterest.com', 'tumblr.com', 'linkedin.com',
+  'mastodon.social', 'mastodon.online', 'reddit.com', 'quora.com', '9gag.com', 'imgur.com',
+  // video + streaming
+  'youtube.com', 'youtu.be', 'netflix.com', 'twitch.tv', 'hulu.com', 'disneyplus.com',
+  'primevideo.com', 'vimeo.com', 'dailymotion.com',
+  // chat
+  'discord.com', 'whatsapp.com', 'telegram.org', 'messenger.com',
+  // shopping
+  'amazon.com', 'amazon.co.uk', 'amazon.com.au', 'ebay.com', 'ebay.co.uk', 'ebay.com.au',
+  'etsy.com', 'aliexpress.com', 'temu.com', 'shein.com',
+  // games
+  'steampowered.com', 'steamcommunity.com', 'roblox.com', 'epicgames.com', 'coolmathgames.com', 'miniclip.com',
+  // music
+  'spotify.com', 'soundcloud.com', 'music.apple.com', 'pandora.com', 'deezer.com', 'tidal.com',
+  // news (endless-scroll; not exhaustive)
+  'bbc.com', 'bbc.co.uk', 'cnn.com', 'theguardian.com', 'nytimes.com', 'news.com.au',
+  'abc.net.au', 'dailymail.co.uk', 'foxnews.com', 'reuters.com',
+  // adult
+  'pornhub.com', 'xvideos.com', 'xnxx.com', 'xhamster.com', 'onlyfans.com', 'redtube.com'
+];
 function isBlocked(host) {
   if (!host) return false;
   for (var i = 0; i < BLOCKED.length; i++) {
