@@ -38,6 +38,20 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 // own domain, so the per-app rule below wouldn't cover them). Kept tight.
 var INFRA_SUFFIXES = ['gstatic.com', 'googleusercontent.com', 'googleapis.com', 'ggpht.com'];
 
+// The deliberate DENY-LIST: common distraction sites ALWAYS bounced home — even if
+// added as an app, and even before the rest of the lockdown is set up.
+var BLOCKED = ['youtube.com', 'youtu.be', 'facebook.com', 'instagram.com', 'tiktok.com',
+  'reddit.com', 'bsky.app', 'twitter.com', 'x.com', 'threads.net', 'snapchat.com',
+  'pinterest.com', 'tumblr.com', 'netflix.com', 'twitch.tv', 'discord.com'];
+function isBlocked(host) {
+  if (!host) return false;
+  for (var i = 0; i < BLOCKED.length; i++) {
+    var s = BLOCKED[i];
+    if (host === s || host.slice(-(s.length + 1)) === '.' + s) return true;
+  }
+  return false;
+}
+
 // Live state, restored from chrome.storage (which the home screen fills in and
 // which survives reboots). Lockdown stays OFF until we've seen the home screen
 // at least once — that way a fresh boot can't bounce itself before it's set up.
@@ -98,8 +112,10 @@ function sendHome(tabId) {
 chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
   if (d.frameId !== 0) return;                 // only whole-page navigations, not embeds
   if (!/^https?:\/\//i.test(d.url || '')) return; // leave chrome://, about:, data: etc. alone
+  var host = hostOf(d.url);
+  if (isBlocked(host)) { sendHome(d.tabId); return; } // hard deny — always on, even if added
   if (!enforcing()) return;                    // not set up yet → don't block (fail open)
-  if (isAllowed(hostOf(d.url))) return;
+  if (isAllowed(host)) return;
   sendHome(d.tabId);                           // blocked → back home
 });
 
