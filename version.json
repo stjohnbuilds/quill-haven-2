@@ -1,6 +1,6 @@
 {
-  "version": "2.3.21",
-  "emoji": "🐨",
-  "date": "2026-06-29",
-  "notes": "New in-app Wi-Fi picker. Tap the Wi-Fi icon to see the networks around you, pick one, type the password and Connect — right inside Quill Haven, no more clunky system window. (First run of this one, so give it a quick test on the laptop.)"
+  "version": "2.3.22",
+  "emoji": "🦢",
+  "date": "2026-07-01",
+  "notes": "Wi-Fi panel finished to match the design: an on/off switch at the top (asks before turning off) and signal-strength bars next to every network. Plus: if the laptop ever starts with no Wi-Fi, it now shows a friendly “please connect” screen instead of a stuck error page, and carries on by itself once you connect."
 }

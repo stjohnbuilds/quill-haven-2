@@ -201,3 +201,7 @@ button.qh-wifi-row:hover { background: var(--row-hover); }
 .qh-wifi-foot { display: flex; justify-content: center; padding: 10px 0 16px; border-top: 1px solid var(--row-hover); }
 .qh-wifi-rescan { display: inline-flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--text-soft); }
 .qh-wifi-rescan svg { width: 15px; height: 15px; }
+
+/* Wi-Fi panel: the on/off switch sits in the header, left of the close X. */
+.qh-wifi-head-toggle { margin-left: auto; margin-right: 12px; }
+.qh-head .qh-title { margin-right: auto; }

@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.21', emoji: '🐨' };
+  var LOCAL = { version: '2.3.22', emoji: '🦢' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -220,7 +220,9 @@
     '</div></div>' +
     // in-app Wi-Fi picker (replaces the native window)
     '<div class="qh-overlay" data-ov="wifi"><div class="qh-card qh-card-sm">' +
-      '<div class="qh-head"><div class="qh-title">Wi-Fi</div><button class="qh-close" data-close="wifi">&#x2715;</button></div>' +
+      '<div class="qh-head"><div class="qh-title">Wi-Fi</div>' +
+        '<label class="qh-switch qh-mini-switch qh-wifi-head-toggle" title="Wi-Fi on/off"><input type="checkbox" class="qh-wifi-radio" checked><span class="qh-slider"></span></label>' +
+        '<button class="qh-close" data-close="wifi">&#x2715;</button></div>' +
       '<div class="qh-wifi-list"></div>' +
       '<div class="qh-wifi-foot"><button class="qh-wifi-rescan">' + I.wifi + '<span>Refresh</span></button></div>' +
     '</div></div>';
@@ -564,30 +566,52 @@
 
   // ── Wi-Fi picker (in-app, via the helper) — ONE ──
   var _wifiConnecting = '';
+  // The same Wi-Fi glyph, with the arcs faded to match how strong the signal is
+  // (full / medium / weak) — like every phone's Wi-Fi list.
+  function wifiIcon(sig) {
+    var mid = sig >= 35 ? 1 : 0.25, top = sig >= 65 ? 1 : 0.25;
+    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
+      '<path opacity="' + mid + '" d="M5 12.55a11 11 0 0 1 14.08 0"/>' +
+      '<path opacity="' + top + '" d="M1.42 9a16 16 0 0 1 21.16 0"/>' +
+      '<path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>' +
+      '<circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>';
+  }
+  function setRadioSwitch(on) { var t = $('.qh-wifi-radio'); if (t) t.checked = !!on; }
   function openWifi() { openOverlay('wifi'); scanWifi(); }
   function scanWifi() {
     var list = $('.qh-wifi-list'); if (!list) return;
     list.innerHTML = '<div class="qh-wifi-msg">Looking for networks…</div>';
     helper('/wifi-list', function (res) {
       if (!res || !res.ok) { list.innerHTML = '<div class="qh-wifi-msg">Couldn’t read Wi-Fi. Tap Refresh.</div>'; return; }
-      var nets = []; try { nets = (JSON.parse(res.body || '{}').networks) || []; } catch (e) {}
-      renderWifi(nets);
+      var nets = [], radio = true;
+      try { var d = JSON.parse(res.body || '{}'); nets = d.networks || []; if (d.radio === false) radio = false; } catch (e) {}
+      setRadioSwitch(radio);
+      renderWifi(nets, radio);
     }, { method: 'GET' });
   }
-  function renderWifi(nets) {
+  function renderWifi(nets, radio) {
     var list = $('.qh-wifi-list'); if (!list) return;
+    if (radio === false) { list.innerHTML = '<div class="qh-wifi-msg">Wi-Fi is off. Use the switch above to turn it on.</div>'; return; }
     if (!nets.length) { list.innerHTML = '<div class="qh-wifi-msg">No networks found. Tap Refresh.</div>'; return; }
     var html = '';
     nets.filter(function (n) { return n.active; }).forEach(function (n) {
-      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + I.wifi + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-tick">' + I.check + '</span></div>';
+      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-tick">' + I.check + '</span></div>';
     });
     var rest = nets.filter(function (n) { return !n.active; });
     if (rest.length) html += '<div class="qh-wifi-label">Other networks</div>';
     rest.forEach(function (n) {
-      html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + I.wifi + '<span>' + esc(n.ssid) + '</span></span>' + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</button>';
+      html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '</span></span>' + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</button>';
     });
     list.innerHTML = html;
     [].forEach.call(list.querySelectorAll('.qh-wifi-row[data-ssid]'), function (row) { row.addEventListener('click', function () { pickWifi(row); }); });
+  }
+  function setWifiRadio(on) {
+    var list = $('.qh-wifi-list');
+    if (list) list.innerHTML = '<div class="qh-wifi-msg">' + (on ? 'Turning Wi-Fi on…' : 'Turning Wi-Fi off…') + '</div>';
+    helper('/wifi-toggle', function (res) {
+      if (res && res.ok) { setRadioSwitch(on); setTimeout(scanWifi, on ? 1200 : 200); }
+      else { setRadioSwitch(!on); if (list) list.innerHTML = '<div class="qh-wifi-msg err">Couldn’t switch Wi-Fi. Try again.</div>'; setTimeout(scanWifi, 2600); }
+    }, { method: 'POST', body: { on: on } });
   }
   function pickWifi(row) {
     [].forEach.call($$('.qh-wifi-edit'), function (e) { if (e.parentNode) e.parentNode.removeChild(e); });
@@ -620,6 +644,13 @@
   function wire() {
     $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { openWifi(); });
     var wr = $('.qh-wifi-rescan'); if (wr) wr.addEventListener('click', scanWifi);
+    var rad = $('.qh-wifi-radio');
+    if (rad) rad.addEventListener('change', function () {
+      if (rad.checked) { setWifiRadio(true); return; }
+      // Turning Wi-Fi OFF cuts the laptop off from its writing apps — ask first.
+      rad.checked = true;
+      askConfirm('Turn off Wi-Fi? Your writing apps need it.', 'Turn off', function () { setWifiRadio(false); });
+    });
     $('.qh-bar [data-act="settings"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="version"]').addEventListener('click', function () { openOverlay('update'); });
     $('.qh-dock-btn').addEventListener('click', function (e) { e.stopPropagation(); togglePanel(); });
