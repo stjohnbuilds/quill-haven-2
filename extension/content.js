@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.20', emoji: '🐬' };
+  var LOCAL = { version: '2.3.21', emoji: '🐨' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -55,6 +55,8 @@
     apps: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
     home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
     grip: '<svg width="10" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="5" r="1.6"/><circle cx="15" cy="5" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="19" r="1.6"/><circle cx="15" cy="19" r="1.6"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     sleep: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
     restart: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
     poweroff: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>',
@@ -98,7 +100,7 @@
     } catch (e) { cb(); }
   }
   function save(o) { try { chrome.storage.local.set(o); } catch (e) {} }
-  function helper(path, cb) { try { chrome.runtime.sendMessage({ type: 'helper', path: path }, function (res) { if (cb) cb(res || { ok: false, reason: (chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no-sw' }); }); } catch (e) { if (cb) cb({ ok: false, reason: String(e) }); } }
+  function helper(path, cb, opts) { try { chrome.runtime.sendMessage({ type: 'helper', path: path, method: opts && opts.method, body: opts && opts.body }, function (res) { if (cb) cb(res || { ok: false, reason: (chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no-sw' }); }); } catch (e) { if (cb) cb({ ok: false, reason: String(e) }); } }
 
   function allApps() { return BUILTINS.concat(state.user); }
   // An app can be hidden from the dock (toggle in Settings) without deleting it. Hidden
@@ -215,6 +217,12 @@
           '<button class="qh-btn-save qh-confirm-yes">Confirm</button>' +
         '</div>' +
       '</div>' +
+    '</div></div>' +
+    // in-app Wi-Fi picker (replaces the native window)
+    '<div class="qh-overlay" data-ov="wifi"><div class="qh-card qh-card-sm">' +
+      '<div class="qh-head"><div class="qh-title">Wi-Fi</div><button class="qh-close" data-close="wifi">&#x2715;</button></div>' +
+      '<div class="qh-wifi-list"></div>' +
+      '<div class="qh-wifi-foot"><button class="qh-wifi-rescan">' + I.wifi + '<span>Refresh</span></button></div>' +
     '</div></div>';
 
   root.appendChild(link);
@@ -554,9 +562,64 @@
     var btn = $('.qh-wifi-btn'); if (btn) { btn.classList.toggle('connected', on); btn.title = on ? 'Wi-Fi — connected' : 'Wi-Fi — offline'; }
   }
 
+  // ── Wi-Fi picker (in-app, via the helper) — ONE ──
+  var _wifiConnecting = '';
+  function openWifi() { openOverlay('wifi'); scanWifi(); }
+  function scanWifi() {
+    var list = $('.qh-wifi-list'); if (!list) return;
+    list.innerHTML = '<div class="qh-wifi-msg">Looking for networks…</div>';
+    helper('/wifi-list', function (res) {
+      if (!res || !res.ok) { list.innerHTML = '<div class="qh-wifi-msg">Couldn’t read Wi-Fi. Tap Refresh.</div>'; return; }
+      var nets = []; try { nets = (JSON.parse(res.body || '{}').networks) || []; } catch (e) {}
+      renderWifi(nets);
+    }, { method: 'GET' });
+  }
+  function renderWifi(nets) {
+    var list = $('.qh-wifi-list'); if (!list) return;
+    if (!nets.length) { list.innerHTML = '<div class="qh-wifi-msg">No networks found. Tap Refresh.</div>'; return; }
+    var html = '';
+    nets.filter(function (n) { return n.active; }).forEach(function (n) {
+      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + I.wifi + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-tick">' + I.check + '</span></div>';
+    });
+    var rest = nets.filter(function (n) { return !n.active; });
+    if (rest.length) html += '<div class="qh-wifi-label">Other networks</div>';
+    rest.forEach(function (n) {
+      html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + I.wifi + '<span>' + esc(n.ssid) + '</span></span>' + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</button>';
+    });
+    list.innerHTML = html;
+    [].forEach.call(list.querySelectorAll('.qh-wifi-row[data-ssid]'), function (row) { row.addEventListener('click', function () { pickWifi(row); }); });
+  }
+  function pickWifi(row) {
+    [].forEach.call($$('.qh-wifi-edit'), function (e) { if (e.parentNode) e.parentNode.removeChild(e); });
+    var ssid = row.getAttribute('data-ssid');
+    if (!row.getAttribute('data-secure')) { doConnect(ssid, ''); return; }
+    var box = document.createElement('div');
+    box.className = 'qh-wifi-edit';
+    box.innerHTML = '<input type="password" class="qh-wifi-pw" placeholder="Password" autocomplete="off"><button class="qh-btn-save qh-wifi-go">Connect</button>';
+    row.insertAdjacentElement('afterend', box);
+    var pw = box.querySelector('.qh-wifi-pw'); pw.focus();
+    box.querySelector('.qh-wifi-go').addEventListener('click', function () { doConnect(ssid, pw.value); });
+    pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doConnect(ssid, pw.value); });
+  }
+  function doConnect(ssid, pw) {
+    if (_wifiConnecting) return; _wifiConnecting = ssid;
+    var list = $('.qh-wifi-list');
+    if (list) list.innerHTML = '<div class="qh-wifi-msg">Connecting to ' + esc(ssid) + '…</div>';
+    helper('/wifi-connect', function (res) {
+      _wifiConnecting = '';
+      if (res && res.ok) { syncWifi(); scanWifi(); }
+      else {
+        var msg = (res && res.body) ? res.body : 'Couldn’t connect. Check the password and try again.';
+        if (list) list.innerHTML = '<div class="qh-wifi-msg err">' + esc(msg) + '</div>';
+        setTimeout(scanWifi, 2600);
+      }
+    }, { method: 'POST', body: { ssid: ssid, password: pw } });
+  }
+
   // ── Wire ──
   function wire() {
-    $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { helper('/wifi-settings'); });
+    $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { openWifi(); });
+    var wr = $('.qh-wifi-rescan'); if (wr) wr.addEventListener('click', scanWifi);
     $('.qh-bar [data-act="settings"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="version"]').addEventListener('click', function () { openOverlay('update'); });
     $('.qh-dock-btn').addEventListener('click', function (e) { e.stopPropagation(); togglePanel(); });
@@ -574,7 +637,7 @@
     [].forEach.call($$('.click[data-act]'), function (rowEl) {
       var act = rowEl.getAttribute('data-act');
       rowEl.addEventListener('click', function () {
-        if (act === 'wifi') helper('/wifi-settings');
+        if (act === 'wifi') openWifi();
         else if (act === 'terminal') { helper('/terminal'); }
         else if (act === 'sleep') helper('/sleep');
         else if (act === 'restart') askConfirm('Restart the laptop?', 'Restart', function () { helper('/reboot'); });

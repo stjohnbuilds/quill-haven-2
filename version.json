@@ -1,6 +1,6 @@
 {
-  "version": "2.3.20",
-  "emoji": "🐬",
-  "date": "2026-06-28",
-  "notes": "When a blocked site bounces you home, it now pops up a little 'Sorry — that site is blocked' note so you know what happened. Also tidied up the feather and leaf icons in the Add-app picker."
+  "version": "2.3.21",
+  "emoji": "🐨",
+  "date": "2026-06-29",
+  "notes": "New in-app Wi-Fi picker. Tap the Wi-Fi icon to see the networks around you, pick one, type the password and Connect — right inside Quill Haven, no more clunky system window. (First run of this one, so give it a quick test on the laptop.)"
 }

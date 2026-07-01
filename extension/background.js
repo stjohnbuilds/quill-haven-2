@@ -24,10 +24,12 @@ var HELPER = 'http://127.0.0.1:8137';
 /* ── 1. Relay helper actions ── */
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || msg.type !== 'helper' || typeof msg.path !== 'string') return;
-  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update', '/screen-off'];
+  var ALLOWED = ['/sleep', '/reboot', '/poweroff', '/wifi-settings', '/go-home', '/terminal', '/apply-update', '/screen-off', '/wifi-list', '/wifi-connect'];
   if (ALLOWED.indexOf(msg.path) < 0) { sendResponse({ ok: false, reason: 'not-allowed' }); return; }
-  fetch(HELPER + msg.path, { method: 'POST', cache: 'no-store', credentials: 'omit' })
-    .then(function (r) { sendResponse({ ok: r.ok, reason: r.ok ? 'ok' : 'http-' + r.status }); })
+  var opts = { method: msg.method === 'GET' ? 'GET' : 'POST', cache: 'no-store', credentials: 'omit' };
+  if (msg.body != null) { opts.body = JSON.stringify(msg.body); opts.headers = { 'Content-Type': 'application/json' }; }
+  fetch(HELPER + msg.path, opts)
+    .then(function (r) { return r.text().then(function (t) { sendResponse({ ok: r.ok, reason: r.ok ? 'ok' : 'http-' + r.status, body: t }); }); })
     .catch(function (e) { sendResponse({ ok: false, reason: String((e && e.message) || e) }); });
   return true; // async reply
 });

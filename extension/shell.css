@@ -180,3 +180,24 @@ select { font-family: inherit; font-size: 12.5px; color: var(--text-strong); bac
 /* Brief "it worked" confirmation after an update lands. */
 .qh-toast { position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 16px); max-width: 80vw; background: #2a2735; color: #fff; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px 18px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28); opacity: 0; transition: opacity 0.35s ease, transform 0.35s ease; pointer-events: none; z-index: 2147483640; }
 .qh-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* ── Wi-Fi picker ── */
+.qh-wifi-list { padding: 4px 0 2px; max-height: 46vh; overflow-y: auto; }
+.qh-wifi-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 18px; background: none; border: none; font-family: inherit; text-align: left; cursor: pointer; }
+button.qh-wifi-row:hover { background: var(--row-hover); }
+.qh-wifi-row.connected { background: rgba(176,131,224,0.14); margin: 4px 12px 6px; border-radius: 12px; padding: 11px 13px; cursor: default; }
+.qh-wifi-name { display: flex; align-items: center; gap: 11px; font-size: 14px; color: var(--text-strong); }
+.qh-wifi-name > span { display: flex; flex-direction: column; }
+.qh-wifi-name em { font-style: normal; font-size: 12px; color: var(--accent-strong); margin-top: 1px; }
+.qh-wifi-name svg { color: var(--text-muted); flex: none; }
+.qh-wifi-row.connected .qh-wifi-name svg, .qh-wifi-tick { color: var(--accent-strong); }
+.qh-wifi-lock { color: var(--text-muted); display: inline-flex; }
+.qh-wifi-label { font-size: 12px; color: var(--text-muted); padding: 8px 18px 4px; }
+.qh-wifi-edit { display: flex; gap: 8px; padding: 2px 18px 12px; }
+.qh-wifi-pw { flex: 1; font-family: inherit; font-size: 13px; color: var(--text-strong); background: var(--row-hover); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px 10px; outline: none; }
+.qh-wifi-pw:focus { border-color: var(--accent); }
+.qh-wifi-msg { padding: 18px; text-align: center; font-size: 13px; color: var(--text-muted); }
+.qh-wifi-msg.err { color: #e06a6a; }
+.qh-wifi-foot { display: flex; justify-content: center; padding: 10px 0 16px; border-top: 1px solid var(--row-hover); }
+.qh-wifi-rescan { display: inline-flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; color: var(--text-soft); }
+.qh-wifi-rescan svg { width: 15px; height: 15px; }
