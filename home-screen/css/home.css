@@ -6,11 +6,8 @@
    wallpaper gradient. Every other colour lives in shell.css.
    =========================================================================== */
 
-@font-face {
-  font-family: 'Great Vibes';
-  font-style: normal; font-weight: 400; font-display: swap;
-  src: url('../fonts/great-vibes-latin.woff2') format('woff2');
-}
+/* (No @font-face any more — the logo is baked-in SVG paths traced from
+   Great Vibes, so it can NEVER render in the wrong font or flash while loading.) */
 
 /* The wallpaper — the only theme-aware thing on the backdrop (one gradient each). */
 :root        { --bg: linear-gradient(135deg, #f6eeff 0%, #fcf3f8 45%, #f0f5ff 100%);
@@ -40,12 +37,10 @@ html.qh-hue-on body { filter: hue-rotate(var(--qh-hue)); }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
 }
 .logo-wrap { position: relative; display: inline-flex; align-items: baseline; }
-.logo {
-  font-family: 'Great Vibes', cursive;
-  font-size: 92px; line-height: 1; letter-spacing: 2px; color: var(--ink);
+.logo-svg {
+  width: min(520px, 82vw); height: auto; color: var(--ink);
   opacity: 0; animation: rise 1s ease forwards 0.2s;
 }
-.logo .haven { margin-left: 6px; }
 .logo-quill {
   position: absolute; right: -86px; bottom: 4px; width: 92px; height: 92px;
   background: var(--ink);

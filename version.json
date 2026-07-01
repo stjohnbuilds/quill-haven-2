@@ -1,6 +1,6 @@
 {
-  "version": "2.3.22",
-  "emoji": "🦢",
+  "version": "2.3.23",
+  "emoji": "🐇",
   "date": "2026-07-01",
-  "notes": "Wi-Fi panel finished to match the design: an on/off switch at the top (asks before turning off) and signal-strength bars next to every network. Plus: if the laptop ever starts with no Wi-Fi, it now shows a friendly “please connect” screen instead of a stuck error page, and carries on by itself once you connect."
+  "notes": "Wi-Fi panel fixed from your testing: it now names the network you are on (with a Disconnect button), remembers passwords for networks you have used before, and the on/off switch works. The Quill Haven name on the home screen is now a baked-in drawing, so it can never flash or change shape while loading. And a big safety fix: only Quill Haven itself can ask the laptop to open a terminal, restart, or update — web pages can no longer reach those controls."
 }

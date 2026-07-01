@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.22', emoji: '🦢' };
+  var LOCAL = { version: '2.3.23', emoji: '🐇' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -129,7 +129,9 @@
   // split second before shell.css loads (the "flash of code" on each app switch).
   var lock = { position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', margin: '0', width: '100%', height: '100%', border: '0', 'pointer-events': 'none', 'z-index': '2147483600', visibility: 'hidden' };
   for (var k in lock) host.style.setProperty(k, lock[k], 'important');
-  var root = host.attachShadow({ mode: 'open' });
+  // 'closed' so page scripts can never reach in and press our buttons —
+  // document.getElementById('qh-shell-host').shadowRoot is null to them.
+  var root = host.attachShadow({ mode: 'closed' });
   var link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = chrome.runtime.getURL('shell.css');
@@ -566,6 +568,7 @@
 
   // ── Wi-Fi picker (in-app, via the helper) — ONE ──
   var _wifiConnecting = '';
+  var _lastNets = [], _lastRadio = true;   // last scan, so the password box can re-draw without re-scanning
   // The same Wi-Fi glyph, with the arcs faded to match how strong the signal is
   // (full / medium / weak) — like every phone's Wi-Fi list.
   function wifiIcon(sig) {
@@ -585,6 +588,7 @@
       if (!res || !res.ok) { list.innerHTML = '<div class="qh-wifi-msg">Couldn’t read Wi-Fi. Tap Refresh.</div>'; return; }
       var nets = [], radio = true;
       try { var d = JSON.parse(res.body || '{}'); nets = d.networks || []; if (d.radio === false) radio = false; } catch (e) {}
+      _lastNets = nets; _lastRadio = radio;
       setRadioSwitch(radio);
       renderWifi(nets, radio);
     }, { method: 'GET' });
@@ -595,7 +599,7 @@
     if (!nets.length) { list.innerHTML = '<div class="qh-wifi-msg">No networks found. Tap Refresh.</div>'; return; }
     var html = '';
     nets.filter(function (n) { return n.active; }).forEach(function (n) {
-      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-tick">' + I.check + '</span></div>';
+      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-side"><span class="qh-wifi-tick">' + I.check + '</span><button class="qh-wifi-off" data-ssid="' + esc(n.ssid) + '">Disconnect</button></span></div>';
     });
     var rest = nets.filter(function (n) { return !n.active; });
     if (rest.length) html += '<div class="qh-wifi-label">Other networks</div>';
@@ -603,7 +607,16 @@
       html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '</span></span>' + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</button>';
     });
     list.innerHTML = html;
-    [].forEach.call(list.querySelectorAll('.qh-wifi-row[data-ssid]'), function (row) { row.addEventListener('click', function () { pickWifi(row); }); });
+    [].forEach.call(list.querySelectorAll('.qh-wifi-row[data-ssid]:not(.connected)'), function (row) { row.addEventListener('click', function (e) { if (e.isTrusted === false) return; pickWifi(row); }); });
+    var off = list.querySelector('.qh-wifi-off');
+    if (off) off.addEventListener('click', function (e) {
+      if (e.isTrusted === false) return;
+      var ssid = off.getAttribute('data-ssid');
+      askConfirm('Disconnect from ' + ssid + '?', 'Disconnect', function () {
+        if (list) list.innerHTML = '<div class="qh-wifi-msg">Disconnecting…</div>';
+        helper('/wifi-disconnect', function () { setTimeout(scanWifi, 800); });
+      });
+    });
   }
   function setWifiRadio(on) {
     var list = $('.qh-wifi-list');
@@ -614,16 +627,24 @@
     }, { method: 'POST', body: { on: on } });
   }
   function pickWifi(row) {
-    [].forEach.call($$('.qh-wifi-edit'), function (e) { if (e.parentNode) e.parentNode.removeChild(e); });
+    // Like a phone: tap a network and just try — a remembered network reconnects
+    // with its saved password. Only ask for one if the network says it needs it.
     var ssid = row.getAttribute('data-ssid');
-    if (!row.getAttribute('data-secure')) { doConnect(ssid, ''); return; }
+    doConnect(ssid, '');
+  }
+  function askWifiPassword(ssid) {
+    // Re-draw the list, then open a password box under that network.
+    renderWifi(_lastNets, _lastRadio);
+    var list = $('.qh-wifi-list'); if (!list) return;
+    var row = list.querySelector('.qh-wifi-row[data-ssid="' + (window.CSS && CSS.escape ? CSS.escape(ssid) : ssid) + '"]');
+    if (!row) { scanWifi(); return; }
     var box = document.createElement('div');
     box.className = 'qh-wifi-edit';
-    box.innerHTML = '<input type="password" class="qh-wifi-pw" placeholder="Password" autocomplete="off"><button class="qh-btn-save qh-wifi-go">Connect</button>';
+    box.innerHTML = '<input type="password" class="qh-wifi-pw" placeholder="Password for ' + esc(ssid) + '" autocomplete="off"><button class="qh-btn-save qh-wifi-go">Connect</button>';
     row.insertAdjacentElement('afterend', box);
     var pw = box.querySelector('.qh-wifi-pw'); pw.focus();
-    box.querySelector('.qh-wifi-go').addEventListener('click', function () { doConnect(ssid, pw.value); });
-    pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') doConnect(ssid, pw.value); });
+    box.querySelector('.qh-wifi-go').addEventListener('click', function () { if (pw.value) doConnect(ssid, pw.value); });
+    pw.addEventListener('keydown', function (e) { if (e.key === 'Enter' && pw.value) doConnect(ssid, pw.value); });
   }
   function doConnect(ssid, pw) {
     if (_wifiConnecting) return; _wifiConnecting = ssid;
@@ -631,12 +652,12 @@
     if (list) list.innerHTML = '<div class="qh-wifi-msg">Connecting to ' + esc(ssid) + '…</div>';
     helper('/wifi-connect', function (res) {
       _wifiConnecting = '';
-      if (res && res.ok) { syncWifi(); scanWifi(); }
-      else {
-        var msg = (res && res.body) ? res.body : 'Couldn’t connect. Check the password and try again.';
-        if (list) list.innerHTML = '<div class="qh-wifi-msg err">' + esc(msg) + '</div>';
-        setTimeout(scanWifi, 2600);
-      }
+      if (res && res.ok) { syncWifi(); scanWifi(); return; }
+      var needsPw = res && (res.reason === 'http-401' || res.body === 'needs-password');
+      if (needsPw && !pw) { askWifiPassword(ssid); return; }
+      var msg = needsPw ? 'That password didn’t work. Try again.' : ((res && res.body) ? res.body : 'Couldn’t connect. Try again.');
+      if (list) list.innerHTML = '<div class="qh-wifi-msg err">' + esc(msg) + '</div>';
+      setTimeout(function () { if (needsPw) askWifiPassword(ssid); else scanWifi(); }, needsPw ? 1600 : 2600);
     }, { method: 'POST', body: { ssid: ssid, password: pw } });
   }
 
@@ -645,7 +666,8 @@
     $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { openWifi(); });
     var wr = $('.qh-wifi-rescan'); if (wr) wr.addEventListener('click', scanWifi);
     var rad = $('.qh-wifi-radio');
-    if (rad) rad.addEventListener('change', function () {
+    if (rad) rad.addEventListener('change', function (e) {
+      if (e.isTrusted === false) { rad.checked = !rad.checked; return; }
       if (rad.checked) { setWifiRadio(true); return; }
       // Turning Wi-Fi OFF cuts the laptop off from its writing apps — ask first.
       rad.checked = true;
@@ -667,9 +689,12 @@
 
     [].forEach.call($$('.click[data-act]'), function (rowEl) {
       var act = rowEl.getAttribute('data-act');
-      rowEl.addEventListener('click', function () {
+      rowEl.addEventListener('click', function (e) {
+        // Only a REAL tap counts — a page script faking a click (isTrusted:false)
+        // can't reach the power/terminal actions. Second half of the back-door lock.
+        if (e.isTrusted === false) return;
         if (act === 'wifi') openWifi();
-        else if (act === 'terminal') { helper('/terminal'); }
+        else if (act === 'terminal') askConfirm('Open the support terminal?', 'Open', function () { helper('/terminal'); });
         else if (act === 'sleep') helper('/sleep');
         else if (act === 'restart') askConfirm('Restart the laptop?', 'Restart', function () { helper('/reboot'); });
         else if (act === 'poweroff') askConfirm('Turn the laptop off?', 'Turn off', function () { helper('/poweroff'); });
@@ -680,7 +705,7 @@
     $('.qh-add-save').addEventListener('click', saveAdd);
     $('.qh-add-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
     $('.qh-add-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') saveAdd(); });
-    $('.qh-update-now').addEventListener('click', applyUpdate);
+    $('.qh-update-now').addEventListener('click', function (e) { if (e.isTrusted === false) return; applyUpdate(); });
     $('.qh-update-check').addEventListener('click', checkNow);
 
     document.addEventListener('click', function (e) { if (e.composedPath && e.composedPath().indexOf($('.qh-dock-panel')) < 0 && e.composedPath().indexOf($('.qh-dock-btn')) < 0) closePanel(); }, true);
