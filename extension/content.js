@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.30', emoji: '🦚' };
+  var LOCAL = { version: '2.3.31', emoji: '🦕' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -683,9 +683,12 @@
     if (rad) rad.addEventListener('change', function (e) {
       if (e.isTrusted === false) { rad.checked = !rad.checked; return; }
       if (rad.checked) { setWifiRadio(true); return; }
-      // Turning Wi-Fi OFF cuts the laptop off from its writing apps — ask first.
+      // The switch can ONLY turn Wi-Fi ON. Quill Haven loads from the internet, so
+      // turning Wi-Fi OFF would lock the laptop out — we don't allow it. Snap the
+      // switch back and say why.
       rad.checked = true;
-      askConfirm('Turn off Wi-Fi? Your writing apps need it.', 'Turn off', function () { setWifiRadio(false); });
+      var wl = $('.qh-wifi-list');
+      if (wl) { wl.innerHTML = '<div class="qh-wifi-msg">Wi-Fi stays on — Quill Haven needs it to open your writing.</div>'; setTimeout(scanWifi, 1800); }
     });
     $('.qh-bar [data-act="settings"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="version"]').addEventListener('click', function () { openOverlay('update'); });

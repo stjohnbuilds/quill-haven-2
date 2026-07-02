@@ -1,6 +1,6 @@
 {
-  "version": "2.3.30",
-  "emoji": "🦚",
+  "version": "2.3.31",
+  "emoji": "🦕",
   "date": "2026-07-01",
-  "notes": "Safety fix: the laptop now switches Wi-Fi back ON by itself every time it starts. So if Wi-Fi ever gets turned off, a simple restart fixes it — you can never get locked out by the Wi-Fi switch again."
+  "notes": "The Wi-Fi switch can now only turn Wi-Fi ON, never off — so it can never lock you out. (Together with the last update, which turns Wi-Fi back on at every restart, being stuck offline is now impossible.)"
 }
