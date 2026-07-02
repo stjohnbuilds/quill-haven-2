@@ -1,6 +1,6 @@
 {
-  "version": "2.3.26",
-  "emoji": "🦩",
+  "version": "2.3.27",
+  "emoji": "🦭",
   "date": "2026-07-01",
-  "notes": "Wi-Fi popup polish from your live test: the \"are you sure?\" box now opens ON TOP of the Wi-Fi popup (not underneath), the card is wider, and the sideways scrollbar is gone — long network names get trimmed with … instead."
+  "notes": "New Forget button in the Wi-Fi popup: the connected network (and any network the laptop remembers) can be forgotten — it won’t rejoin by itself and will ask for the password next time. Asks \"are you sure?\" first."
 }

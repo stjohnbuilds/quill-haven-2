@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.26', emoji: '🦩' };
+  var LOCAL = { version: '2.3.27', emoji: '🦭' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -599,22 +599,36 @@
     if (!nets.length) { list.innerHTML = '<div class="qh-wifi-msg">No networks found. Tap Refresh.</div>'; return; }
     var html = '';
     nets.filter(function (n) { return n.active; }).forEach(function (n) {
-      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-side"><span class="qh-wifi-tick">' + I.check + '</span><button class="qh-wifi-off" data-ssid="' + esc(n.ssid) + '">Disconnect</button></span></div>';
+      html += '<div class="qh-wifi-row connected"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '<em>Connected</em></span></span><span class="qh-wifi-side"><span class="qh-wifi-tick">' + I.check + '</span><button class="qh-wifi-off" data-ssid="' + esc(n.ssid) + '">Disconnect</button><button class="qh-wifi-off qh-wifi-forget" data-ssid="' + esc(n.ssid) + '">Forget</button></span></div>';
     });
     var rest = nets.filter(function (n) { return !n.active; });
     if (rest.length) html += '<div class="qh-wifi-label">Other networks</div>';
     rest.forEach(function (n) {
-      html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '</span></span>' + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</button>';
+      // A remembered network gets a small Forget pill. It lives INSIDE the row button,
+      // so it's a span — its click handler stops the tap from ALSO connecting.
+      var forget = n.saved ? '<span class="qh-wifi-off qh-wifi-forget" data-ssid="' + esc(n.ssid) + '" role="button">Forget</span>' : '';
+      html += '<button class="qh-wifi-row" data-ssid="' + esc(n.ssid) + '" data-secure="' + (n.secure ? '1' : '') + '"><span class="qh-wifi-name">' + wifiIcon(n.signal) + '<span>' + esc(n.ssid) + '</span></span><span class="qh-wifi-side">' + forget + (n.secure ? '<span class="qh-wifi-lock">' + I.lock + '</span>' : '') + '</span></button>';
     });
     list.innerHTML = html;
     [].forEach.call(list.querySelectorAll('.qh-wifi-row[data-ssid]:not(.connected)'), function (row) { row.addEventListener('click', function (e) { if (e.isTrusted === false) return; pickWifi(row); }); });
-    var off = list.querySelector('.qh-wifi-off');
+    var off = list.querySelector('.qh-wifi-off:not(.qh-wifi-forget)');
     if (off) off.addEventListener('click', function (e) {
       if (e.isTrusted === false) return;
       var ssid = off.getAttribute('data-ssid');
       askConfirm('Disconnect from ' + ssid + '?', 'Disconnect', function () {
         if (list) list.innerHTML = '<div class="qh-wifi-msg">Disconnecting…</div>';
         helper('/wifi-disconnect', function () { setTimeout(scanWifi, 800); });
+      });
+    });
+    [].forEach.call(list.querySelectorAll('.qh-wifi-forget'), function (fg) {
+      fg.addEventListener('click', function (e) {
+        if (e.isTrusted === false) return;
+        e.stopPropagation(); e.preventDefault();   // a Forget tap must not ALSO connect
+        var ssid = fg.getAttribute('data-ssid');
+        askConfirm('Forget ' + ssid + '? It won’t rejoin by itself, and it’ll ask for the password next time.', 'Forget', function () {
+          if (list) list.innerHTML = '<div class="qh-wifi-msg">Forgetting…</div>';
+          helper('/wifi-forget', function () { setTimeout(scanWifi, 800); }, { method: 'POST', body: { ssid: ssid } });
+        });
       });
     });
   }
