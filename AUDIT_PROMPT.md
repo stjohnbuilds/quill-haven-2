@@ -1,3 +1,8 @@
+> ⚠️ **STALE (2026-06-27).** This brief says the website lockdown is OFF
+> (`LOCKDOWN_ENABLED = false`) — that is NO LONGER TRUE. Lockdown has been ON since
+> 2.3.16, with the deny-list and the Google-tightening live. Don't trust the "it's off"
+> premise below. Current state: **`CLAUDE.md`** + **`FIX_CHECKLIST.md`**.
+
 # Quill Haven — full code audit (section by section · red = not needed)
 
 Paste this into a fresh AI chat. It is a **read-only audit** — the AI must NOT change any
