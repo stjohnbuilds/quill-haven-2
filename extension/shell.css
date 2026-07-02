@@ -210,3 +210,17 @@ button.qh-wifi-row:hover { background: var(--row-hover); }
 .qh-wifi-side { display: inline-flex; align-items: center; gap: 10px; }
 .qh-wifi-off { font-family: inherit; font-size: 12px; color: var(--text-soft); background: none; border: 1px solid var(--card-border); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
 .qh-wifi-off:hover { color: var(--text-strong); border-color: var(--text-muted); }
+
+/* Confirm box always wins the stacking fight — it must never open UNDER the
+   Wi-Fi (or any other) popup. (Marie hit this: Disconnect's "are you sure?"
+   appeared beneath the Wi-Fi card.) */
+.qh-overlay[data-ov="confirm"] { z-index: 10; }
+
+/* Wi-Fi card: wider, and never a sideways scrollbar. Long network names get
+   trimmed with … instead of stretching the card. */
+[data-ov="wifi"] .qh-card-sm { max-width: 470px; }
+.qh-wifi-list { overflow-x: hidden; }
+.qh-wifi-name { flex: 1 1 auto; min-width: 0; }
+.qh-wifi-name > span { min-width: 0; }
+.qh-wifi-name > span, .qh-wifi-name em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qh-wifi-side, .qh-wifi-lock, .qh-wifi-tick { flex: none; }

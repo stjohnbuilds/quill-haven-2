@@ -1,6 +1,6 @@
 {
-  "version": "2.3.25",
-  "emoji": "🦫",
+  "version": "2.3.26",
+  "emoji": "🦩",
   "date": "2026-07-01",
-  "notes": "Two safety tidy-ups: the site-blocking can no longer be slipped past on the very first click after the laptop has been sitting idle, and a page that fails to load (a mistyped address, a dead link) now sends you back to your home screen instead of a blank error page."
+  "notes": "Wi-Fi popup polish from your live test: the \"are you sure?\" box now opens ON TOP of the Wi-Fi popup (not underneath), the card is wider, and the sideways scrollbar is gone — long network names get trimmed with … instead."
 }
