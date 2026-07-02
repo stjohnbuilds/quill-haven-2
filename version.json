@@ -1,6 +1,6 @@
 {
-  "version": "2.3.29",
-  "emoji": "🐝",
+  "version": "2.3.30",
+  "emoji": "🦚",
   "date": "2026-07-01",
-  "notes": "The no-Wi-Fi screen now has Quill Haven’s OWN Wi-Fi picker built in — tap your network, type the password right there, with a spinning \"connecting…\". No more ugly Linux window. Turns itself into your writing screen the moment you’re online."
+  "notes": "Safety fix: the laptop now switches Wi-Fi back ON by itself every time it starts. So if Wi-Fi ever gets turned off, a simple restart fixes it — you can never get locked out by the Wi-Fi switch again."
 }
