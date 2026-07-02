@@ -1,6 +1,6 @@
 {
-  "version": "2.3.27",
-  "emoji": "🦭",
+  "version": "2.3.28",
+  "emoji": "🐌",
   "date": "2026-07-01",
-  "notes": "New Forget button in the Wi-Fi popup: the connected network (and any network the laptop remembers) can be forgotten — it won’t rejoin by itself and will ask for the password next time. Asks \"are you sure?\" first."
+  "notes": "The no-Wi-Fi screen grew up: no more long black wait (if Wi-Fi is off it appears straight away), it looks like Quill Haven now (same wallpaper, same logo), it TELLS you whether Wi-Fi is switched off or just not connected, and nothing pops up uninvited — the Connect button opens the Wi-Fi window when YOU press it."
 }
