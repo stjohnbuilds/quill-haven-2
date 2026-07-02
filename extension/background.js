@@ -173,14 +173,44 @@ function sendHome(tabId, host) {
   try { fetch(HELPER + '/go-home', { method: 'POST' }).catch(function () {}); } catch (e) {}
 }
 
+// The allow/deny decision, shared by the normal path and the cold-start path below.
+function guardHost(tabId, host) {
+  if (isBlocked(host)) { sendHome(tabId, host); return; }   // hard deny — always on
+  if (!enforcing()) return;                                  // not set up yet → allow (fail open)
+  if (isAllowed(host)) return;
+  sendHome(tabId, host);                                     // not on the list → back home
+}
+
 chrome.webNavigation.onBeforeNavigate.addListener(function (d) {
   if (d.frameId !== 0) return;                 // only whole-page navigations, not embeds
   if (!/^https?:\/\//i.test(d.url || '')) return; // leave chrome://, about:, data: etc. alone
   var host = hostOf(d.url);
-  if (isBlocked(host)) { sendHome(d.tabId, host); return; } // hard deny — always on, even if added
-  if (!enforcing()) return;                    // not set up yet → don't block (fail open)
-  if (isAllowed(host)) return;
-  sendHome(d.tabId, host);                      // blocked → back home
+  // COLD-START RACE FIX: the background worker loses its memory whenever it sleeps,
+  // and reloading the allow-list from storage is asynchronous — so the FIRST click
+  // after a wake could otherwise slip through with an empty list (fail open). If the
+  // list isn't loaded yet, load it first, THEN judge, so even that first click is
+  // guarded. (A genuinely-unset device still fails open, which is intended pre-setup.)
+  if (!state.homeHost) {
+    chrome.storage.local.get(['qh-home-url', 'qh-app-urls'], function (v) {
+      if (!chrome.runtime.lastError) rebuildState(v);
+      guardHost(d.tabId, host);
+    });
+    return;
+  }
+  guardHost(d.tabId, host);
+});
+
+// RECOVERY: if a page navigation FAILS (a typo'd app URL, a link to a dead page),
+// the tab lands on Chrome's bare error screen with no bar and no way back. Send it
+// home instead. Guards: ignore our own redirects (aborted) and don't bounce the home
+// page onto itself (so a Wi-Fi drop, where home also can't load, can't loop).
+chrome.webNavigation.onErrorOccurred.addListener(function (d) {
+  if (d.frameId !== 0) return;
+  if (!/^https?:\/\//i.test(d.url || '')) return;
+  if (/ABORTED/i.test(d.error || '')) return;  // this is us redirecting, or a cancelled load
+  var host = hostOf(d.url);
+  if (!state.homeHost || host === state.homeHost) return;
+  sendHome(d.tabId, host);
 });
 
 /* ── 3. Screen-off when idle (battery) ── */
