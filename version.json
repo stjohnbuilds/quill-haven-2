@@ -1,6 +1,6 @@
 {
-  "version": "2.3.28",
-  "emoji": "🐌",
+  "version": "2.3.29",
+  "emoji": "🐝",
   "date": "2026-07-01",
-  "notes": "The no-Wi-Fi screen grew up: no more long black wait (if Wi-Fi is off it appears straight away), it looks like Quill Haven now (same wallpaper, same logo), it TELLS you whether Wi-Fi is switched off or just not connected, and nothing pops up uninvited — the Connect button opens the Wi-Fi window when YOU press it."
+  "notes": "The no-Wi-Fi screen now has Quill Haven’s OWN Wi-Fi picker built in — tap your network, type the password right there, with a spinning \"connecting…\". No more ugly Linux window. Turns itself into your writing screen the moment you’re online."
 }
