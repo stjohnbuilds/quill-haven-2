@@ -1,6 +1,6 @@
 {
-  "version": "2.3.31",
-  "emoji": "🦕",
+  "version": "2.3.32",
+  "emoji": "🦖",
   "date": "2026-07-01",
-  "notes": "The Wi-Fi switch can now only turn Wi-Fi ON, never off — so it can never lock you out. (Together with the last update, which turns Wi-Fi back on at every restart, being stuck offline is now impossible.)"
+  "notes": "Removed the Wi-Fi on/off switch entirely — there is no reason to turn Wi-Fi off on a writing laptop that needs the internet. Wi-Fi is simply always on. (If it is ever off for some odd reason, a single \"Turn Wi-Fi on\" button appears — that is the only switch, and it only goes one way.)"
 }

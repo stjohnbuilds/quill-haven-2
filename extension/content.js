@@ -37,7 +37,7 @@
   ];
 
   // Version identity. MUST agree with version.json (same number AND same emoji).
-  var LOCAL = { version: '2.3.31', emoji: '🦕' };
+  var LOCAL = { version: '2.3.32', emoji: '🦖' };
   var REMOTE_VERSION_URL = 'https://raw.githubusercontent.com/stjohnbuilds/quill-haven-2/main/version.json';
   // The delivery repo's copy of THIS file. Before telling the laptop to install, the
   // browser confirms the new version is actually published here — so the laptop can
@@ -223,7 +223,6 @@
     // in-app Wi-Fi picker (replaces the native window)
     '<div class="qh-overlay" data-ov="wifi"><div class="qh-card qh-card-sm">' +
       '<div class="qh-head"><div class="qh-title">Wi-Fi</div>' +
-        '<label class="qh-switch qh-mini-switch qh-wifi-head-toggle" title="Wi-Fi on/off"><input type="checkbox" class="qh-wifi-radio" checked><span class="qh-slider"></span></label>' +
         '<button class="qh-close" data-close="wifi">&#x2715;</button></div>' +
       '<div class="qh-wifi-list"></div>' +
       '<div class="qh-wifi-foot"><button class="qh-wifi-rescan">' + I.wifi + '<span>Refresh</span></button></div>' +
@@ -579,7 +578,6 @@
       '<path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>' +
       '<circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>';
   }
-  function setRadioSwitch(on) { var t = $('.qh-wifi-radio'); if (t) t.checked = !!on; }
   function openWifi() { openOverlay('wifi'); scanWifi(); }
   function scanWifi() {
     var list = $('.qh-wifi-list'); if (!list) return;
@@ -589,13 +587,21 @@
       var nets = [], radio = true;
       try { var d = JSON.parse(res.body || '{}'); nets = d.networks || []; if (d.radio === false) radio = false; } catch (e) {}
       _lastNets = nets; _lastRadio = radio;
-      setRadioSwitch(radio);
       renderWifi(nets, radio);
     }, { method: 'GET' });
   }
   function renderWifi(nets, radio) {
     var list = $('.qh-wifi-list'); if (!list) return;
-    if (radio === false) { list.innerHTML = '<div class="qh-wifi-msg">Wi-Fi is off. Use the switch above to turn it on.</div>'; return; }
+    // There is NO "turn Wi-Fi off" control anywhere — this laptop needs the internet,
+    // so off would only lock it out. The only time we offer a switch is the rare case
+    // where Wi-Fi is already off (a stray key, a driver hiccup): then a single ON
+    // button, nothing else. Normally Wi-Fi is on and this branch never shows.
+    if (radio === false) {
+      list.innerHTML = '<div class="qh-wifi-msg">Wi-Fi is off.</div><div style="text-align:center;padding:0 0 14px;"><button class="qh-btn-save qh-wifi-on">Turn Wi-Fi on</button></div>';
+      var onb = list.querySelector('.qh-wifi-on');
+      if (onb) onb.addEventListener('click', function (e) { if (e.isTrusted === false) return; turnWifiOn(); });
+      return;
+    }
     if (!nets.length) { list.innerHTML = '<div class="qh-wifi-msg">No networks found. Tap Refresh.</div>'; return; }
     var html = '';
     nets.filter(function (n) { return n.active; }).forEach(function (n) {
@@ -632,13 +638,13 @@
       });
     });
   }
-  function setWifiRadio(on) {
+  function turnWifiOn() {
     var list = $('.qh-wifi-list');
-    if (list) list.innerHTML = '<div class="qh-wifi-msg">' + (on ? 'Turning Wi-Fi on…' : 'Turning Wi-Fi off…') + '</div>';
+    if (list) list.innerHTML = '<div class="qh-wifi-msg">Turning Wi-Fi on…</div>';
     helper('/wifi-toggle', function (res) {
-      if (res && res.ok) { setRadioSwitch(on); setTimeout(scanWifi, on ? 1200 : 200); }
-      else { setRadioSwitch(!on); if (list) list.innerHTML = '<div class="qh-wifi-msg err">Couldn’t switch Wi-Fi. Try again.</div>'; setTimeout(scanWifi, 2600); }
-    }, { method: 'POST', body: { on: on } });
+      if (res && res.ok) { setTimeout(scanWifi, 1200); }
+      else { if (list) list.innerHTML = '<div class="qh-wifi-msg err">Couldn’t turn Wi-Fi on. Try again.</div>'; setTimeout(scanWifi, 2600); }
+    }, { method: 'POST', body: { on: true } });
   }
   function pickWifi(row) {
     // Like a phone: tap a network and just try — a remembered network reconnects
@@ -679,17 +685,6 @@
   function wire() {
     $('.qh-bar [data-act="wifi"]').addEventListener('click', function () { openWifi(); });
     var wr = $('.qh-wifi-rescan'); if (wr) wr.addEventListener('click', scanWifi);
-    var rad = $('.qh-wifi-radio');
-    if (rad) rad.addEventListener('change', function (e) {
-      if (e.isTrusted === false) { rad.checked = !rad.checked; return; }
-      if (rad.checked) { setWifiRadio(true); return; }
-      // The switch can ONLY turn Wi-Fi ON. Quill Haven loads from the internet, so
-      // turning Wi-Fi OFF would lock the laptop out — we don't allow it. Snap the
-      // switch back and say why.
-      rad.checked = true;
-      var wl = $('.qh-wifi-list');
-      if (wl) { wl.innerHTML = '<div class="qh-wifi-msg">Wi-Fi stays on — Quill Haven needs it to open your writing.</div>'; setTimeout(scanWifi, 1800); }
-    });
     $('.qh-bar [data-act="settings"]').addEventListener('click', function () { openOverlay('settings'); });
     $('.qh-bar [data-act="version"]').addEventListener('click', function () { openOverlay('update'); });
     $('.qh-dock-btn').addEventListener('click', function (e) { e.stopPropagation(); togglePanel(); });
