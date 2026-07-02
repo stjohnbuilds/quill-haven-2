@@ -40,6 +40,24 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 // own domain, so the per-app rule below wouldn't cover them). Kept tight.
 var INFRA_SUFFIXES = ['gstatic.com', 'googleusercontent.com', 'googleapis.com', 'ggpht.com'];
 
+// SHARED-GIANT domains where allowing the whole base domain would fling open a
+// distraction portal. google.com hosts Docs (allowed) AND Search / Gmail / News /
+// the Web Store (all distractions). So for these, we allow ONLY the exact hosts the
+// writing app truly needs — never the rest of the domain. Everything else uses the
+// normal "allow the whole registrable domain" rule (so a plain site's www + sign-in
+// keep working). PLATFORM_ALLOW maps a giant's base domain to its allowed hosts.
+var PLATFORM_ALLOW = {
+  'google.com': ['docs.google.com', 'accounts.google.com', 'drive.google.com']
+};
+
+// Public app-hosting platforms: one base domain, millions of UNRELATED sites
+// (Typing & Tomes lives on vercel.app; the old home screen on github.io). Allowing
+// the whole base here would open every stranger's app on the same platform, so for
+// these we allow ONLY the exact app host that was added — nothing else on it.
+var HOST_ONLY_PLATFORMS = ['vercel.app', 'github.io', 'netlify.app', 'pages.dev',
+  'web.app', 'firebaseapp.com', 'herokuapp.com', 'glitch.me', 'replit.app',
+  'onrender.com', 'surge.sh', 'workers.dev', 'appspot.com', 'render.com'];
+
 // The deliberate DENY-LIST: common distraction sites ALWAYS bounced home — even if
 // added as an app, and even before the rest of the lockdown is set up.
 var BLOCKED = [
@@ -77,29 +95,36 @@ function isBlocked(host) {
 // Live state, restored from chrome.storage (which the home screen fills in and
 // which survives reboots). Lockdown stays OFF until we've seen the home screen
 // at least once — that way a fresh boot can't bounce itself before it's set up.
-var state = { homeHost: '', homeUrl: '', appDomains: [] };
+var state = { homeHost: '', homeUrl: '', appHosts: [] };
 
-// The registrable-ish base domain of a host, e.g. docs.google.com -> google.com.
-// Allowing the base domain lets all of an app's own subdomains through (so Docs'
-// many google.com subdomains work). Naive last-two-labels: fine for the .com/.so
-// sites in use; would need care for .co.uk-style names (noted for device tuning).
+// Two-part country suffixes, so bbc.co.uk -> bbc.co.uk (NOT the whole of co.uk).
+var TWO_PART_TLDS = ['co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'com.au', 'net.au', 'org.au',
+  'co.nz', 'co.za', 'com.br', 'co.jp', 'co.in', 'co.kr'];
+// The registrable base domain of a host, e.g. docs.google.com -> google.com,
+// bbc.co.uk -> bbc.co.uk. Used to spot shared-giant domains and, for normal sites,
+// to allow the whole brand (so www + sign-in on the same brand keep working).
 function baseDomain(host) {
   var parts = String(host || '').toLowerCase().split('.').filter(Boolean);
   if (parts.length <= 2) return parts.join('.');
-  return parts.slice(-2).join('.');
+  var lastTwo = parts.slice(-2).join('.');
+  if (TWO_PART_TLDS.indexOf(lastTwo) >= 0 && parts.length >= 3) return parts.slice(-3).join('.');
+  return lastTwo;
 }
 function hostOf(url) { try { return new URL(url).hostname.toLowerCase(); } catch (e) { return ''; } }
+function endsWithDomain(host, suffix) { return host === suffix || host.slice(-(suffix.length + 1)) === '.' + suffix; }
 
 function rebuildState(v) {
   v = v || {};
   state.homeUrl = v['qh-home-url'] || '';
   state.homeHost = hostOf(state.homeUrl);
-  // The shell publishes the one app list's URLs as 'qh-app-urls'; we derive the
-  // allowed base domains here (so the allow-list has ONE source — the app list).
+  // The shell publishes the one app list's URLs as 'qh-app-urls'; we keep the exact
+  // app hosts here (ONE source — the app list). isAllowed() turns each host into the
+  // right rule: shared giants (google.com) get a tight per-host allow, everything
+  // else gets its whole brand domain.
   var urls = Array.isArray(v['qh-app-urls']) ? v['qh-app-urls'] : [];
-  var doms = {};
-  urls.forEach(function (u) { var d = baseDomain(hostOf(u)); if (d) doms[d] = true; });
-  state.appDomains = Object.keys(doms);
+  var hosts = {};
+  urls.forEach(function (u) { var h = hostOf(u); if (h) hosts[h] = true; });
+  state.appHosts = Object.keys(hosts);
 }
 
 function loadState() {
@@ -120,9 +145,25 @@ function enforcing() { return LOCKDOWN_ENABLED && !!state.homeHost; }
 function isAllowed(host) {
   if (!host) return true;
   if (host === state.homeHost) return true;
-  function ends(suffix) { return host === suffix || host.slice(-(suffix.length + 1)) === '.' + suffix; }
-  for (var i = 0; i < state.appDomains.length; i++) { if (ends(state.appDomains[i])) return true; }
-  for (var j = 0; j < INFRA_SUFFIXES.length; j++) { if (ends(INFRA_SUFFIXES[j])) return true; }
+  // Asset CDNs the editors pull from (fonts, images, api) — never browsable pages.
+  for (var j = 0; j < INFRA_SUFFIXES.length; j++) { if (endsWithDomain(host, INFRA_SUFFIXES[j])) return true; }
+  for (var i = 0; i < state.appHosts.length; i++) {
+    var appHost = state.appHosts[i];
+    var base = baseDomain(appHost);
+    var allowList = PLATFORM_ALLOW[base];
+    if (allowList) {
+      // Shared giant (e.g. google.com): only the exact app host + its named siblings
+      // (Docs sign-in + Drive). This is what keeps Search / Gmail / News OUT.
+      if (host === appHost) return true;
+      for (var k = 0; k < allowList.length; k++) { if (host === allowList[k]) return true; }
+    } else if (HOST_ONLY_PLATFORMS.indexOf(base) >= 0) {
+      // Public app platform (vercel.app, github.io, ...): only THIS exact app.
+      if (host === appHost) return true;
+    } else {
+      // Normal site: allow the whole brand domain, so www + same-brand sign-in work.
+      if (endsWithDomain(host, base)) return true;
+    }
+  }
   return false;
 }
 
